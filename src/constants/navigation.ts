@@ -1,0 +1,38 @@
+import {
+  Activity,
+  Apple,
+  Award,
+  BarChart3,
+  Bell,
+  CalendarDays,
+  Camera,
+  Dumbbell,
+  Goal,
+  Home,
+  Moon,
+  PieChart,
+  Scale,
+  Settings,
+  Timer,
+  Waves,
+} from "lucide-react";
+
+export const navigation = [
+  { label: "Home", href: "/", icon: Home },
+  { label: "Coach IA", href: "/coach", icon: Activity },
+  { label: "Calendário", href: "/calendar", icon: CalendarDays },
+  { label: "Treinos", href: "/workouts", icon: Dumbbell },
+  { label: "Timer", href: "/timer", icon: Timer },
+  { label: "Peso", href: "/weight", icon: Scale },
+  { label: "Analytics", href: "/analytics", icon: PieChart },
+  { label: "Avaliações", href: "/assessments", icon: BarChart3 },
+  { label: "Fotos", href: "/photos", icon: Camera },
+  { label: "Cardio", href: "/cardio", icon: Activity },
+  { label: "Nutrição", href: "/nutrition", icon: Apple },
+  { label: "Sono", href: "/sleep", icon: Moon },
+  { label: "Água", href: "/water", icon: Waves },
+  { label: "Conquistas", href: "/achievements", icon: Award },
+  { label: "Metas", href: "/goals", icon: Goal },
+  { label: "Notificações", href: "/notifications", icon: Bell },
+  { label: "Configurações", href: "/settings", icon: Settings }
+] as const;

@@ -3,30 +3,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VolumeChart } from "@/components/charts/VolumeChart";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { theme } from "@/theme/theme";
+import { isCardioDay, isWorkoutDay } from "@/utils/stats";
 
 export function AnalyticsPage() {
   const { data } = useFitnessOverview();
   if (!data) return null;
 
+  const week = data.entries.slice(-7);
+  const workoutScore = Math.min(100, (week.filter(isWorkoutDay).length / data.profile.weeklyWorkoutGoal) * 100);
+  const cardioScore = Math.min(100, (week.filter(isCardioDay).length / data.profile.weeklyCardioGoal) * 100);
+  const volumeScore = Math.min(100, (week.reduce((sum, entry) => sum + entry.totalLoad, 0) / 50000) * 100);
+  const weightScore = data.entries.filter((entry) => entry.weight !== null).length > 0 ? 100 : 0;
   const radar = [
-    { metric: "Sono", value: 76 },
-    { metric: "Água", value: 88 },
-    { metric: "Cardio", value: 68 },
-    { metric: "Proteína", value: 92 },
-    { metric: "Treinos", value: 84 },
-    { metric: "Mobilidade", value: 57 }
+    { metric: "Treinos", value: workoutScore },
+    { metric: "Cardio", value: cardioScore },
+    { metric: "Volume", value: volumeScore },
+    { metric: "Peso", value: weightScore }
   ];
 
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold text-primary">Analytics</p>
-        <h1 className="text-3xl font-black tracking-normal">Insights estilo GitHub</h1>
+        <h1 className="text-3xl font-black tracking-normal">Insights dos seus registros</h1>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Radar de hábitos</CardTitle>
+            <CardTitle>Radar de consistência</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-80">
@@ -50,11 +54,11 @@ export function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-4">
-        {["Sono x Peso", "Água x Peso", "Cardio x Peso", "Proteína x Massa Magra"].map((item) => (
+      <div className="grid gap-4 md:grid-cols-3">
+        {["Cardio x Peso", "Volume x Peso", "Treinos x Evolução"].map((item) => (
           <Card key={item}>
             <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Correlação</p>
+              <p className="text-sm text-muted-foreground">Correlação futura</p>
               <p className="mt-2 font-semibold">{item}</p>
             </CardContent>
           </Card>

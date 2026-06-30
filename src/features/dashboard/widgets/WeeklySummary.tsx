@@ -1,7 +1,8 @@
-import { CalendarCheck, CheckCircle2, Moon, Target } from "lucide-react";
+import { CalendarCheck, Target, Timer } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { DailyEntry, Goal } from "@/types/fitness";
+import { isCardioDay, isWorkoutDay } from "@/utils/stats";
 
 interface WeeklySummaryProps {
   entries: DailyEntry[];
@@ -10,22 +11,35 @@ interface WeeklySummaryProps {
 
 export function WeeklySummary({ entries, goals }: WeeklySummaryProps) {
   const week = entries.slice(-7);
-  const trained = week.filter((entry) => entry.workoutMinutes > 0).length;
-  const cardio = week.filter((entry) => entry.cardioMinutes > 0).length;
-  const perfect = week.filter((entry) => entry.workoutMinutes > 0 && entry.waterLiters >= 2.8 && entry.sleepHours >= 7).length;
+  const trained = week.filter(isWorkoutDay).length;
+  const cardio = week.filter(isCardioDay).length;
+  const trainingMinutes = week.reduce((sum, entry) => sum + entry.workoutMinutes, 0);
+
+  if (entries.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumo da semana</CardTitle>
+          <p className="text-sm text-muted-foreground">Sem registros ainda.</p>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Quando você registrar treino, cardio ou peso, este painel passa a calcular sua semana com dados reais.
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Resumo da semana</CardTitle>
-        <p className="text-sm text-muted-foreground">Consistência, hábitos e metas ativas</p>
+        <p className="text-sm text-muted-foreground">Treinos, cardio e volume registrado</p>
       </CardHeader>
       <CardContent className="space-y-4">
         {[
-          { icon: CalendarCheck, label: "Treinos", value: trained, target: 5 },
-          { icon: Target, label: "Cardios", value: cardio, target: 3 },
-          { icon: Moon, label: "Sono 7h+", value: week.filter((entry) => entry.sleepHours >= 7).length, target: 7 },
-          { icon: CheckCircle2, label: "Dias perfeitos", value: perfect, target: 5 }
+          { icon: CalendarCheck, label: "Treinos", value: trained, target: goals.find((goal) => goal.id === "workouts")?.target ?? 5 },
+          { icon: Target, label: "Cardios", value: cardio, target: goals.find((goal) => goal.id === "cardio")?.target ?? 3 },
+          { icon: Timer, label: "Horas de treino", value: Math.round(trainingMinutes / 60), target: 5 }
         ].map((item) => (
           <div key={item.label} className="space-y-2">
             <div className="flex items-center justify-between text-sm">
@@ -41,7 +55,7 @@ export function WeeklySummary({ entries, goals }: WeeklySummaryProps) {
           </div>
         ))}
         <div className="grid grid-cols-2 gap-2 pt-2">
-          {goals.slice(0, 4).map((goal) => (
+          {goals.map((goal) => (
             <div key={goal.id} className="rounded-md border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground">{goal.label}</p>
               <p className="mt-1 text-sm font-semibold">

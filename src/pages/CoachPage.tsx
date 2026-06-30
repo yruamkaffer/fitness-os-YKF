@@ -1,23 +1,26 @@
+import { subDays } from "date-fns";
 import { Bot, CheckCircle2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { generateDailyCoachReport } from "@/services/coach.service";
+import { computeCurrentStreak } from "@/utils/stats";
 
 export function CoachPage() {
-  const { data } = useFitnessOverview();
+  const { data, today } = useFitnessOverview();
   if (!data) return null;
 
-  const today = data.entries[data.entries.length - 1];
-  const yesterday = data.entries[data.entries.length - 2];
-  const workout = data.workoutPlan.find((plan) => plan.weekday === new Date(`${today.date}T12:00:00`).getDay());
+  const todayEntry = data.entries.find((entry) => entry.date === today);
+  const yesterdayDate = subDays(new Date(`${today}T12:00:00`), 1).toISOString().slice(0, 10);
+  const yesterday = data.entries.find((entry) => entry.date === yesterdayDate);
+  const workout = data.workoutPlan.find((plan) => plan.weekday === new Date(`${today}T12:00:00`).getDay());
   const report = generateDailyCoachReport({
     profile: data.profile,
-    today,
+    today: todayEntry,
     yesterday,
     workout,
-    nutrition: data.nutrition,
-    streak: 19
+    streak: computeCurrentStreak(data.entries),
+    entriesCount: data.entries.length
   });
 
   return (
@@ -34,7 +37,7 @@ export function CoachPage() {
           </CardTitle>
           <Badge className="border-primary/30 text-primary">
             <Sparkles className="mr-1 h-3 w-3" />
-            Gerado com seus dados
+            Baseado nos seus registros
           </Badge>
         </CardHeader>
         <CardContent>
@@ -42,7 +45,7 @@ export function CoachPage() {
         </CardContent>
       </Card>
       <div className="grid gap-4 md:grid-cols-3">
-        {["Progressão de carga", "Consistência", "Recuperação"].map((item) => (
+        {["Progressão de carga", "Consistência", "Registro de peso"].map((item) => (
           <Card key={item}>
             <CardContent className="flex items-center gap-3 p-5">
               <CheckCircle2 className="h-5 w-5 text-primary" />

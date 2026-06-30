@@ -22,11 +22,7 @@ export function App() {
           <Route path="weight" element={<WeightPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="assessments" element={<ModulePage module="Avaliações" />} />
-          <Route path="photos" element={<ModulePage module="Fotos" />} />
           <Route path="cardio" element={<ModulePage module="Cardio" />} />
-          <Route path="nutrition" element={<ModulePage module="Nutrição" />} />
-          <Route path="sleep" element={<ModulePage module="Sono" />} />
-          <Route path="water" element={<ModulePage module="Água" />} />
           <Route path="achievements" element={<ModulePage module="Conquistas" />} />
           <Route path="goals" element={<ModulePage module="Metas" />} />
           <Route path="notifications" element={<ModulePage module="Notificações" />} />

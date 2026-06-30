@@ -34,31 +34,14 @@ export interface WorkoutPlan {
 export interface DailyEntry {
   date: string;
   status: DayStatus;
-  weight: number;
-  waterLiters: number;
-  sleepHours: number;
-  mood: number;
-  energy: number;
+  weight: number | null;
+  mood: number | null;
+  energy: number | null;
   workoutMinutes: number;
   cardioMinutes: number;
   cardioCalories: number;
   totalLoad: number;
   notes: string;
-  vitamins: boolean;
-  photos?: {
-    front?: string;
-    side?: string;
-    back?: string;
-  };
-}
-
-export interface NutritionDay {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  waterGoal: number;
-  supplements: Array<{ name: string; taken: boolean }>;
 }
 
 export interface Goal {
@@ -79,13 +62,22 @@ export interface Achievement {
 
 export interface FitnessProfile {
   name: string;
-  startWeight: number;
-  currentWeight: number;
-  goalWeight: number;
-  startedAt: string;
+  startWeight: number | null;
+  currentWeight: number | null;
+  goalWeight: number | null;
+  startedAt: string | null;
   weeklyWorkoutGoal: number;
   weeklyCardioGoal: number;
-  waterGoal: number;
-  sleepGoal: number;
-  proteinGoal: number;
 }
+
+export interface FitnessOverview {
+  profile: FitnessProfile;
+  entries: DailyEntry[];
+  goals: Goal[];
+  achievements: Achievement[];
+  workoutPlan: WorkoutPlan[];
+}
+
+export type DailyEntryInput = Partial<Omit<DailyEntry, "date">> & {
+  date: string;
+};

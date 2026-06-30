@@ -17,7 +17,7 @@ export function TodayWorkoutCard({ workout, onDone }: TodayWorkoutCardProps) {
           <CardTitle>Treino de hoje</CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">{workout?.label ?? "Hoje"}</p>
         </div>
-        <Badge>{workout?.estimatedMinutes ?? 0} min</Badge>
+        <Badge>{workout?.estimatedMinutes ? `${workout.estimatedMinutes} min` : "planejado"}</Badge>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -32,7 +32,7 @@ export function TodayWorkoutCard({ workout, onDone }: TodayWorkoutCardProps) {
             <div key={exercise.id} className="flex items-center justify-between rounded-md border bg-muted/25 px-3 py-2 text-sm">
               <span>{exercise.name}</span>
               <span className="text-muted-foreground">
-                {exercise.sets}x{exercise.reps} · {exercise.load || "BW"}kg
+                {exercise.sets}x{exercise.reps} · {exercise.load > 0 ? `${exercise.load}kg` : "sem carga"}
               </span>
             </div>
           ))}

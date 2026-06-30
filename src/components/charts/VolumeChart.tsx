@@ -13,6 +13,14 @@ export function VolumeChart({ entries }: VolumeChartProps) {
     cardio: entry.cardioMinutes
   }));
 
+  if (data.length === 0) {
+    return (
+      <div className="flex h-52 w-full items-center justify-center rounded-md border bg-muted/20 px-6 text-center text-sm text-muted-foreground">
+        Registre treino, carga ou cardio para ver o volume semanal.
+      </div>
+    );
+  }
+
   return (
     <div className="h-52 w-full">
       <ResponsiveContainer width="100%" height="100%">

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FitnessHeatmap } from "@/components/calendar/FitnessHeatmap";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { useFitnessStore } from "@/stores/fitness-store";
-import { kg, liters, minutes } from "@/utils/format";
+import { minutes, optionalKg } from "@/utils/format";
 
 export function CalendarPage() {
   const { data } = useFitnessOverview();
@@ -21,24 +21,29 @@ export function CalendarPage() {
       <Card>
         <CardHeader>
           <CardTitle>Atividade diária</CardTitle>
-          <p className="text-sm text-muted-foreground">Clique em qualquer dia para abrir peso, fotos, treino, cardio, água, sono, humor, energia e observações.</p>
+          <p className="text-sm text-muted-foreground">Clique em qualquer dia para abrir peso, treino, cardio, humor, energia e observações.</p>
         </CardHeader>
         <CardContent>
-          <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />
+          {data.entries.length === 0 ? (
+            <div className="rounded-md border bg-muted/20 p-6 text-sm text-muted-foreground">
+              Nenhum dia registrado ainda. Use o painel inicial para cadastrar seu primeiro peso, treino ou cardio.
+            </div>
+          ) : (
+            <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />
+          )}
         </CardContent>
       </Card>
       <Dialog open={Boolean(selectedDay)} title={selectedDay?.date ?? "Dia"} onClose={() => setSelectedDay(undefined)}>
         {selectedDay && (
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              ["Peso", kg(selectedDay.weight)],
+              ["Peso", optionalKg(selectedDay.weight)],
               ["Treino", minutes(selectedDay.workoutMinutes)],
               ["Cardio", minutes(selectedDay.cardioMinutes)],
-              ["Água", liters(selectedDay.waterLiters)],
-              ["Sono", `${selectedDay.sleepHours}h`],
-              ["Humor", `${selectedDay.mood}/5`],
-              ["Energia", `${selectedDay.energy}/5`],
-              ["Carga levantada", `${selectedDay.totalLoad.toLocaleString("pt-BR")}kg`]
+              ["Humor", selectedDay.mood ? `${selectedDay.mood}/5` : "--"],
+              ["Energia", selectedDay.energy ? `${selectedDay.energy}/5` : "--"],
+              ["Carga levantada", `${selectedDay.totalLoad.toLocaleString("pt-BR")}kg`],
+              ["Observações", selectedDay.notes || "Sem observações"]
             ].map(([label, value]) => (
               <div key={label} className="rounded-md border bg-muted/20 p-3">
                 <p className="text-xs text-muted-foreground">{label}</p>

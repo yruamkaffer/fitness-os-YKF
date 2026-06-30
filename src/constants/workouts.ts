@@ -1,11 +1,18 @@
-import type { WorkoutPlan } from "@/types/fitness";
+import type { Exercise, WorkoutPlan } from "@/types/fitness";
 
-const makeHistory = (base: number) => [
-  { date: "2026-06-02", load: base - 4, reps: 8 },
-  { date: "2026-06-09", load: base - 2, reps: 8 },
-  { date: "2026-06-16", load: base, reps: 7 },
-  { date: "2026-06-23", load: base, reps: 8 }
-];
+function exercise(id: string, name: string, sets: number, reps: string, restSeconds = 90): Exercise {
+  return {
+    id,
+    name,
+    sets,
+    reps,
+    load: 0,
+    rpe: 0,
+    restSeconds,
+    history: [],
+    pr: 0
+  };
+}
 
 export const weeklyWorkoutPlan: WorkoutPlan[] = [
   {
@@ -13,15 +20,15 @@ export const weeklyWorkoutPlan: WorkoutPlan[] = [
     label: "Segunda",
     focus: "Peito + Ombro + Tríceps",
     groups: ["Peito", "Ombros", "Tríceps"],
-    estimatedMinutes: 72,
+    estimatedMinutes: 0,
     exercises: [
-      { id: "supino-reto", name: "Supino reto", sets: 4, reps: "6-8", load: 82, rpe: 8, restSeconds: 120, history: makeHistory(82), pr: 90 },
-      { id: "supino-inclinado", name: "Supino inclinado", sets: 3, reps: "8-10", load: 64, rpe: 8, restSeconds: 90, history: makeHistory(64), pr: 70 },
-      { id: "crucifixo", name: "Crucifixo", sets: 3, reps: "10-12", load: 22, rpe: 7, restSeconds: 60, history: makeHistory(22), pr: 26 },
-      { id: "desenvolvimento", name: "Desenvolvimento militar", sets: 4, reps: "6-8", load: 46, rpe: 8, restSeconds: 120, history: makeHistory(46), pr: 52 },
-      { id: "lateral", name: "Elevação lateral", sets: 4, reps: "12-15", load: 12, rpe: 9, restSeconds: 60, history: makeHistory(12), pr: 16 },
-      { id: "testa", name: "Tríceps testa", sets: 3, reps: "8-10", load: 30, rpe: 8, restSeconds: 75, history: makeHistory(30), pr: 34 },
-      { id: "corda", name: "Tríceps corda", sets: 3, reps: "10-12", load: 36, rpe: 8, restSeconds: 60, history: makeHistory(36), pr: 42 }
+      exercise("supino-reto", "Supino reto", 4, "6-8", 120),
+      exercise("supino-inclinado", "Supino inclinado", 3, "8-10"),
+      exercise("crucifixo", "Crucifixo", 3, "10-12"),
+      exercise("desenvolvimento", "Desenvolvimento militar", 4, "6-8", 120),
+      exercise("lateral", "Elevação lateral", 4, "12-15", 60),
+      exercise("testa", "Tríceps testa", 3, "8-10"),
+      exercise("corda", "Tríceps corda", 3, "10-12", 60)
     ]
   },
   {
@@ -29,14 +36,14 @@ export const weeklyWorkoutPlan: WorkoutPlan[] = [
     label: "Terça",
     focus: "Costas + Bíceps",
     groups: ["Costas", "Bíceps"],
-    estimatedMinutes: 68,
+    estimatedMinutes: 0,
     exercises: [
-      { id: "barra", name: "Barra fixa", sets: 4, reps: "6-10", load: 0, rpe: 8, restSeconds: 120, history: makeHistory(0), pr: 12 },
-      { id: "remada-curvada", name: "Remada curvada", sets: 4, reps: "6-8", load: 78, rpe: 8, restSeconds: 120, history: makeHistory(78), pr: 86 },
-      { id: "pulldown", name: "Pulldown", sets: 3, reps: "8-10", load: 70, rpe: 8, restSeconds: 90, history: makeHistory(70), pr: 78 },
-      { id: "remada-unilateral", name: "Remada unilateral", sets: 3, reps: "10-12", load: 34, rpe: 8, restSeconds: 75, history: makeHistory(34), pr: 40 },
-      { id: "rosca-direta", name: "Rosca direta", sets: 3, reps: "8-10", load: 34, rpe: 8, restSeconds: 75, history: makeHistory(34), pr: 40 },
-      { id: "rosca-martelo", name: "Rosca martelo", sets: 3, reps: "10-12", load: 18, rpe: 8, restSeconds: 60, history: makeHistory(18), pr: 22 }
+      exercise("barra", "Barra fixa", 4, "6-10", 120),
+      exercise("remada-curvada", "Remada curvada", 4, "6-8", 120),
+      exercise("pulldown", "Pulldown", 3, "8-10"),
+      exercise("remada-unilateral", "Remada unilateral", 3, "10-12"),
+      exercise("rosca-direta", "Rosca direta", 3, "8-10"),
+      exercise("rosca-martelo", "Rosca martelo", 3, "10-12", 60)
     ]
   },
   {
@@ -44,14 +51,14 @@ export const weeklyWorkoutPlan: WorkoutPlan[] = [
     label: "Quarta",
     focus: "Pernas",
     groups: ["Pernas", "Core"],
-    estimatedMinutes: 76,
+    estimatedMinutes: 0,
     exercises: [
-      { id: "agachamento", name: "Agachamento", sets: 4, reps: "5-8", load: 118, rpe: 8, restSeconds: 150, history: makeHistory(118), pr: 132 },
-      { id: "leg-press", name: "Leg Press", sets: 4, reps: "10-12", load: 240, rpe: 8, restSeconds: 120, history: makeHistory(240), pr: 280 },
-      { id: "terra-romeno", name: "Terra romeno", sets: 3, reps: "8-10", load: 96, rpe: 8, restSeconds: 120, history: makeHistory(96), pr: 110 },
-      { id: "mesa-flexora", name: "Mesa flexora", sets: 3, reps: "10-12", load: 48, rpe: 8, restSeconds: 75, history: makeHistory(48), pr: 58 },
-      { id: "panturrilha", name: "Panturrilha", sets: 5, reps: "12-15", load: 82, rpe: 8, restSeconds: 60, history: makeHistory(82), pr: 96 },
-      { id: "abdomen", name: "Abdômen", sets: 4, reps: "12-20", load: 0, rpe: 7, restSeconds: 45, history: makeHistory(0), pr: 20 }
+      exercise("agachamento", "Agachamento", 4, "5-8", 150),
+      exercise("leg-press", "Leg Press", 4, "10-12", 120),
+      exercise("terra-romeno", "Terra romeno", 3, "8-10", 120),
+      exercise("mesa-flexora", "Mesa flexora", 3, "10-12"),
+      exercise("panturrilha", "Panturrilha", 5, "12-15", 60),
+      exercise("abdomen", "Abdômen", 4, "12-20", 45)
     ]
   },
   {
@@ -59,12 +66,12 @@ export const weeklyWorkoutPlan: WorkoutPlan[] = [
     label: "Quinta",
     focus: "Superior completo",
     groups: ["Peito", "Costas", "Ombros", "Bíceps", "Tríceps"],
-    estimatedMinutes: 70,
+    estimatedMinutes: 0,
     exercises: [
-      { id: "supino-halter", name: "Supino halter", sets: 3, reps: "8-10", load: 34, rpe: 8, restSeconds: 90, history: makeHistory(34), pr: 40 },
-      { id: "remada-baixa", name: "Remada baixa", sets: 3, reps: "8-10", load: 74, rpe: 8, restSeconds: 90, history: makeHistory(74), pr: 82 },
-      { id: "arnold", name: "Desenvolvimento Arnold", sets: 3, reps: "10-12", load: 20, rpe: 8, restSeconds: 75, history: makeHistory(20), pr: 24 },
-      { id: "facepull", name: "Face pull", sets: 3, reps: "12-15", load: 32, rpe: 7, restSeconds: 60, history: makeHistory(32), pr: 38 }
+      exercise("supino-halter", "Supino halter", 3, "8-10"),
+      exercise("remada-baixa", "Remada baixa", 3, "8-10"),
+      exercise("arnold", "Desenvolvimento Arnold", 3, "10-12"),
+      exercise("facepull", "Face pull", 3, "12-15", 60)
     ]
   },
   {
@@ -72,12 +79,12 @@ export const weeklyWorkoutPlan: WorkoutPlan[] = [
     label: "Sexta",
     focus: "Pernas + Core",
     groups: ["Pernas", "Core"],
-    estimatedMinutes: 74,
+    estimatedMinutes: 0,
     exercises: [
-      { id: "front-squat", name: "Agachamento frontal", sets: 4, reps: "6-8", load: 82, rpe: 8, restSeconds: 120, history: makeHistory(82), pr: 94 },
-      { id: "passada", name: "Passada", sets: 3, reps: "10-12", load: 28, rpe: 8, restSeconds: 90, history: makeHistory(28), pr: 34 },
-      { id: "cadeira-extensora", name: "Cadeira extensora", sets: 4, reps: "12-15", load: 64, rpe: 9, restSeconds: 60, history: makeHistory(64), pr: 76 },
-      { id: "prancha", name: "Prancha", sets: 4, reps: "45-75s", load: 0, rpe: 8, restSeconds: 45, history: makeHistory(0), pr: 90 }
+      exercise("front-squat", "Agachamento frontal", 4, "6-8", 120),
+      exercise("passada", "Passada", 3, "10-12"),
+      exercise("cadeira-extensora", "Cadeira extensora", 4, "12-15", 60),
+      exercise("prancha", "Prancha", 4, "45-75s", 45)
     ]
   },
   {
@@ -85,7 +92,7 @@ export const weeklyWorkoutPlan: WorkoutPlan[] = [
     label: "Sábado",
     focus: "Cardio",
     groups: ["Cardio"],
-    estimatedMinutes: 45,
+    estimatedMinutes: 0,
     exercises: []
   },
   {

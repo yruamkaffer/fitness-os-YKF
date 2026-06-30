@@ -1,35 +1,47 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import type { DailyEntry, FitnessProfile, NutritionDay, WorkoutPlan } from "@/types/fitness";
-import { kg, liters } from "@/utils/format";
+import type { DailyEntry, FitnessProfile, WorkoutPlan } from "@/types/fitness";
+import { kg } from "@/utils/format";
 
 interface CoachInput {
   profile: FitnessProfile;
-  today: DailyEntry;
+  today?: DailyEntry;
   yesterday?: DailyEntry;
   workout?: WorkoutPlan;
-  nutrition: NutritionDay;
   streak: number;
+  entriesCount: number;
 }
 
 export function generateDailyCoachReport(input: CoachInput) {
-  const weekday = format(new Date(`${input.today.date}T12:00:00`), "EEEE", { locale: ptBR });
-  const lost = input.profile.startWeight - input.profile.currentWeight;
-  const remaining = input.profile.currentWeight - input.profile.goalWeight;
-  const slept = input.yesterday?.sleepHours ?? input.today.sleepHours;
-  const trainedYesterday = input.yesterday?.workoutMinutes ? "Ontem você treinou." : "Ontem foi um dia de recuperação.";
-  const nextExercise = input.workout?.exercises.find((exercise) => exercise.name.toLowerCase().includes("remada"));
+  const date = input.today?.date ? new Date(`${input.today.date}T12:00:00`) : new Date();
+  const weekday = format(date, "EEEE", { locale: ptBR });
+  const currentWeight = input.profile.currentWeight ?? input.today?.weight ?? null;
+
+  if (input.entriesCount === 0) {
+    return `Bom dia. Hoje é ${weekday}. Seu FITNESS OS está limpo e pronto para dados reais. Registre seu peso atual, sua meta e depois use o botão Treinei hoje quando concluir um treino.`;
+  }
+
+  const weightMessage =
+    currentWeight !== null && input.profile.startWeight !== null && input.profile.goalWeight !== null
+      ? `Peso atual: ${kg(currentWeight)}. Você está acompanhando a meta de ${kg(input.profile.goalWeight)}.`
+      : "Peso e meta ainda não estão completos.";
+
+  const yesterdayMessage = input.yesterday?.status === "workout" || input.yesterday?.status === "both"
+    ? "Ontem você treinou."
+    : input.yesterday?.status === "cardio"
+      ? "Ontem você fez cardio."
+      : "Sem registro de treino ontem.";
+
+  const progressionHint = input.workout?.exercises[0]
+    ? `No treino de hoje, comece pelo exercício ${input.workout.exercises[0].name} e registre a carga ao final.`
+    : "Hoje pode ser um dia de descanso ou cardio leve, se fizer sentido para sua rotina.";
 
   return [
     `Bom dia. Hoje é ${weekday}.`,
-    `Peso atual: ${kg(input.profile.currentWeight)}. Você perdeu ${kg(lost)} desde o início e faltam ${kg(remaining)} para a meta.`,
-    `Hoje é treino de ${input.workout?.focus ?? "recuperação ativa"}. ${trainedYesterday}`,
-    `Dormiu ${slept.toFixed(1).replace(".", ",")}h, bebeu ${liters(input.today.waterLiters)} e ${
-      input.nutrition.supplements.every((item) => item.taken) ? "tomou todos os suplementos" : "ainda tem suplementos pendentes"
-    }.`,
-    nextExercise
-      ? `Hoje tente subir 2kg na ${nextExercise.name.toLowerCase()} mantendo RPE ${nextExercise.rpe}.`
-      : "Hoje priorize técnica, mobilidade e controle de respiração.",
-    `Você está há ${input.streak} dias consecutivos em movimento. A meta da semana está ao alcance.`
+    weightMessage,
+    `Treino planejado: ${input.workout?.focus ?? "sem treino cadastrado para hoje"}.`,
+    yesterdayMessage,
+    `Sequência atual: ${input.streak} dia(s).`,
+    progressionHint
   ].join(" ");
 }

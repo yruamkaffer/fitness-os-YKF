@@ -1,6 +1,6 @@
 # FITNESS OS
 
-Dashboard pessoal para treino, dieta, saúde, evolução corporal e hábitos.
+Dashboard pessoal para treino, cardio, peso, evolução corporal e consistência.
 
 ## Stack
 
@@ -52,11 +52,12 @@ npm run preview
 
 ## Módulos implementados nesta versão
 
-- Home Dashboard com métricas, treino do dia, relatório do Coach IA, calendário tipo GitHub, nutrição, água, sono, volume semanal e gráfico de peso.
+- Home Dashboard com métricas reais, entrada rápida de dados, treino do dia, relatório do Coach IA, calendário tipo GitHub, volume semanal e gráfico de peso.
 - Coach IA com relatório diário baseado nos dados.
 - Calendário anual clicável com detalhes do dia.
 - Treinos com rotina semanal, exercícios, carga, séries, RPE, descanso, histórico e PR.
 - Timer com descanso, modo livre, Pomodoro, presets e ações de tela.
 - Peso com gráfico, perda total, média semanal e projeção de meta.
 - Analytics com radar de hábitos, volume semanal e cards de correlação.
-- Páginas preparadas para Avaliações, Fotos, Cardio, Nutrição, Sono, Água, Conquistas, Metas, Notificações e Configurações.
+- Dados começam vazios e são salvos no navegador com `localStorage`.
+- Páginas preparadas para Avaliações, Cardio, Conquistas, Metas, Notificações e Configurações.

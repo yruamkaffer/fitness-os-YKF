@@ -1,15 +1,12 @@
 create table profiles (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  start_weight numeric not null,
-  current_weight numeric not null,
-  goal_weight numeric not null,
-  started_at date not null,
+  start_weight numeric,
+  current_weight numeric,
+  goal_weight numeric,
+  started_at date,
   weekly_workout_goal integer not null default 5,
   weekly_cardio_goal integer not null default 3,
-  water_goal numeric not null default 3.2,
-  sleep_goal numeric not null default 7.5,
-  protein_goal integer not null default 170,
   created_at timestamptz not null default now()
 );
 
@@ -19,8 +16,6 @@ create table daily_entries (
   date date not null,
   status text not null check (status in ('none', 'workout', 'cardio', 'both', 'rest', 'sick', 'travel')),
   weight numeric,
-  water_liters numeric default 0,
-  sleep_hours numeric default 0,
   mood integer default 3,
   energy integer default 3,
   workout_minutes integer default 0,

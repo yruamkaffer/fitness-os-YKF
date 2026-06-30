@@ -1,14 +1,15 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bell, CheckCircle2, Dumbbell, Menu, Moon, Search } from "lucide-react";
-import { navigation } from "@/constants/navigation";
 import { Button } from "@/components/ui/button";
-import { useFitnessStore } from "@/stores/fitness-store";
+import { navigation } from "@/constants/navigation";
+import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { cn } from "@/utils/cn";
+import { isWorkoutDay } from "@/utils/stats";
 
 export function AppLayout() {
-  const markTodayTrained = useFitnessStore((state) => state.markTodayTrained);
-  const trainedToday = useFitnessStore((state) => state.trainedToday);
+  const { data, today, markTodayTrained } = useFitnessOverview();
+  const trainedToday = data.entries.some((entry) => entry.date === today && isWorkoutDay(entry));
 
   return (
     <div className="min-h-screen text-foreground">
@@ -60,7 +61,7 @@ export function AppLayout() {
             </Button>
             <div className="hidden min-w-0 flex-1 items-center gap-3 rounded-md border bg-card px-3 py-2 text-sm text-muted-foreground md:flex">
               <Search className="h-4 w-4" />
-              Buscar treino, métrica, refeição ou hábito
+              Buscar treino, peso, cardio ou meta
             </div>
             <div className="ml-auto flex items-center gap-2">
               <Button aria-label="Alternar tema" variant="ghost" size="icon">

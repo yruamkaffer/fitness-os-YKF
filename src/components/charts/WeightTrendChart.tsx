@@ -7,10 +7,21 @@ interface WeightTrendChartProps {
 }
 
 export function WeightTrendChart({ entries }: WeightTrendChartProps) {
-  const data = entries.slice(-30).map((entry) => ({
-    date: entry.date.slice(5),
-    peso: entry.weight
-  }));
+  const data = entries
+    .filter((entry) => entry.weight !== null)
+    .slice(-30)
+    .map((entry) => ({
+      date: entry.date.slice(5),
+      peso: entry.weight
+    }));
+
+  if (data.length === 0) {
+    return (
+      <div className="flex h-60 w-full items-center justify-center rounded-md border bg-muted/20 px-6 text-center text-sm text-muted-foreground">
+        Registre seu primeiro peso para o gráfico aparecer aqui.
+      </div>
+    );
+  }
 
   return (
     <div className="h-60 w-full">

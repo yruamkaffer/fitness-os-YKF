@@ -1,15 +1,7 @@
-import { achievements, dailyEntries, goals, profile, todayNutrition } from "@/database/seed";
-import { weeklyWorkoutPlan } from "@/constants/workouts";
+import { loadFitnessOverview } from "@/services/fitness-storage";
 
 export const fitnessApi = {
   async overview() {
-    return {
-      profile,
-      entries: dailyEntries,
-      nutrition: todayNutrition,
-      goals,
-      achievements,
-      workoutPlan: weeklyWorkoutPlan
-    };
+    return loadFitnessOverview();
   }
 };

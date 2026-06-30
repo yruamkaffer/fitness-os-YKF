@@ -3,26 +3,28 @@ import { Scale, TrendingDown, type LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WeightTrendChart } from "@/components/charts/WeightTrendChart";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
-import { kg } from "@/utils/format";
+import { kg, optionalKg } from "@/utils/format";
 
 export function WeightPage() {
   const { data } = useFitnessOverview();
   if (!data) return null;
 
-  const entries = data.entries;
-  const first = entries[0];
-  const last = entries[entries.length - 1];
-  const totalLoss = first.weight - last.weight;
-  const weeklyLoss = totalLoss / (entries.length / 7);
-  const remaining = last.weight - data.profile.goalWeight;
-  const weeksToGoal = Math.max(1, remaining / weeklyLoss);
-  const projectedDate = addDays(parseISO(last.date), Math.round(weeksToGoal * 7));
-  const days = differenceInCalendarDays(parseISO(last.date), parseISO(first.date));
+  const weightEntries = data.entries.filter((entry) => entry.weight !== null);
+  const first = weightEntries[0];
+  const last = weightEntries[weightEntries.length - 1];
+  const totalLoss = first && last && first.weight !== null && last.weight !== null ? first.weight - last.weight : null;
+  const days = first && last ? Math.max(1, differenceInCalendarDays(parseISO(last.date), parseISO(first.date))) : 0;
+  const weeklyLoss = totalLoss !== null && days > 0 ? totalLoss / (days / 7) : null;
+  const remaining = last?.weight !== null && last?.weight !== undefined && data.profile.goalWeight !== null ? Math.abs(last.weight - data.profile.goalWeight) : null;
+  const projectedDate =
+    weeklyLoss && weeklyLoss > 0 && remaining !== null && last
+      ? addDays(parseISO(last.date), Math.round((remaining / weeklyLoss) * 7)).toLocaleDateString("pt-BR")
+      : "--";
   const metrics: Array<{ label: string; value: string; icon: LucideIcon }> = [
-    { label: "Atual", value: kg(last.weight), icon: Scale },
-    { label: "Perda total", value: kg(totalLoss), icon: TrendingDown },
-    { label: "Média semanal", value: kg(weeklyLoss), icon: TrendingDown },
-    { label: "Projeção", value: projectedDate.toLocaleDateString("pt-BR"), icon: Scale }
+    { label: "Atual", value: optionalKg(data.profile.currentWeight), icon: Scale },
+    { label: "Perda total", value: totalLoss !== null ? kg(Math.max(0, totalLoss)) : "--", icon: TrendingDown },
+    { label: "Média semanal", value: weeklyLoss !== null ? kg(Math.max(0, weeklyLoss)) : "--", icon: TrendingDown },
+    { label: "Projeção", value: projectedDate, icon: Scale }
   ];
 
   return (
@@ -46,10 +48,10 @@ export function WeightPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>{days} dias de histórico</CardTitle>
+          <CardTitle>{weightEntries.length} registro(s) de peso</CardTitle>
         </CardHeader>
         <CardContent>
-          <WeightTrendChart entries={entries} />
+          <WeightTrendChart entries={data.entries} />
         </CardContent>
       </Card>
     </div>

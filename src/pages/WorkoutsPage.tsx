@@ -24,7 +24,7 @@ export function WorkoutsPage() {
                 </CardTitle>
                 <p className="mt-1 text-sm text-muted-foreground">{workout.focus}</p>
               </div>
-              <Badge>{workout.estimatedMinutes} min</Badge>
+              <Badge>{workout.estimatedMinutes ? `${workout.estimatedMinutes} min` : "planejado"}</Badge>
             </CardHeader>
             <CardContent className="space-y-3">
               {workout.exercises.length === 0 ? (
@@ -36,14 +36,14 @@ export function WorkoutsPage() {
                       <div>
                         <p className="font-semibold">{exercise.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {exercise.sets} séries · {exercise.reps} reps · RPE {exercise.rpe} · descanso {exercise.restSeconds}s
+                          {exercise.sets} séries · {exercise.reps} reps · RPE {exercise.rpe || "--"} · descanso {exercise.restSeconds}s
                         </p>
                       </div>
                       <div className="text-right text-sm">
-                        <p className="font-semibold">{exercise.load || "BW"}kg</p>
+                        <p className="font-semibold">{exercise.load > 0 ? `${exercise.load}kg` : "sem carga"}</p>
                         <p className="flex items-center justify-end gap-1 text-muted-foreground">
                           <TrendingUp className="h-3 w-3" />
-                          PR {exercise.pr}
+                          {exercise.pr > 0 ? `PR ${exercise.pr}` : "sem PR"}
                         </p>
                       </div>
                     </div>

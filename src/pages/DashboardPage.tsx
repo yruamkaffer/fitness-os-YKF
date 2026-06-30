@@ -16,7 +16,7 @@ import { useFitnessStore } from "@/stores/fitness-store";
 import { kg, minutes, optionalKg } from "@/utils/format";
 import { computeBestStreak, computeCurrentStreak, isCardioDay, isWorkoutDay } from "@/utils/stats";
 
-function optionalMetric(value: number | null | undefined, formatter = String) {
+function optionalMetric(value: number | null | undefined, formatter: (value: number) => string = (value) => String(value)) {
   return value === null || value === undefined || Number.isNaN(value) ? "--" : formatter(value);
 }
 

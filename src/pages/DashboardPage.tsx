@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Activity, CalendarDays, Dumbbell, Flame, Scale } from "lucide-react";
+import { Activity, CalendarDays, Dumbbell, Flame, Save, Scale } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FitnessHeatmap } from "@/components/calendar/FitnessHeatmap";
@@ -9,11 +9,11 @@ import { MetricCard } from "@/features/dashboard/widgets/MetricCard";
 import { TodayWorkoutCard } from "@/features/dashboard/widgets/TodayWorkoutCard";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { useFitnessStore } from "@/stores/fitness-store";
-import { kg, minutes, optionalKg } from "@/utils/format";
+import { minutes, optionalKg } from "@/utils/format";
 import { computeBestStreak, computeCurrentStreak, isCardioDay, isWorkoutDay } from "@/utils/stats";
 
 export function DashboardPage() {
-  const { data, today, saveEntry } = useFitnessOverview();
+  const { data, isLoading, today, saveEntry } = useFitnessOverview();
   const selectedDay = useFitnessStore((state) => state.selectedDay);
   const setSelectedDay = useFitnessStore((state) => state.setSelectedDay);
   const todayEntry = data.entries.find((entry) => entry.date === today);
@@ -27,15 +27,17 @@ export function DashboardPage() {
   const cardioWeek = week.reduce((sum, entry) => sum + (entry.cardioMinutes ?? 0), 0);
   const totalLoadWeek = week.reduce((sum, entry) => sum + entry.totalLoad, 0);
 
+  if (isLoading) {
+    return <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">Carregando seus registros...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-primary">FITNESS OS</p>
           <h1 className="text-3xl font-black tracking-normal sm:text-4xl">Treino de hoje</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
-            Registre apenas dados reais: peso corporal, cargas do treino, cardio e observações.
-          </p>
+          <p className="mt-2 max-w-3xl text-muted-foreground">Registre treino, peso corporal e cardio em fluxos separados.</p>
         </div>
         <div className="rounded-md border bg-card px-4 py-3 text-sm text-muted-foreground">
           Hoje: <span className="font-semibold text-foreground">{new Date(`${today}T12:00:00`).toLocaleDateString("pt-BR")}</span>
@@ -43,6 +45,47 @@ export function DashboardPage() {
       </div>
 
       <TodayWorkoutCard date={today} workout={todayWorkout} entry={todayEntry} onSave={saveEntry} />
+
+      <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Registrar peso corporal</CardTitle>
+            <p className="text-sm text-muted-foreground">Independente do treino. Escolha qualquer data.</p>
+          </CardHeader>
+          <CardContent>
+            <WeightQuickForm
+              defaultDate={today}
+              onSave={(date, weight) => {
+                const existing = data.entries.find((entry) => entry.date === date);
+                saveEntry({ date, weight, status: existing?.status ?? "none" });
+              }}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="border-secondary/50 bg-secondary/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-secondary" />
+              Registrar cardio
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Cardio fica separado e destacado. Escolha data e minutos.</p>
+          </CardHeader>
+          <CardContent>
+            <CardioQuickForm
+              defaultDate={today}
+              onSave={(date, cardioMinutes) => {
+                const existing = data.entries.find((entry) => entry.date === date);
+                saveEntry({
+                  date,
+                  status: existing?.status === "workout" || existing?.status === "both" ? "both" : "cardio",
+                  cardioMinutes
+                });
+              }}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <MetricCard icon={Scale} label="Peso atual" value={optionalKg(data.profile.currentWeight)} detail="último peso registrado" />
@@ -62,25 +105,7 @@ export function DashboardPage() {
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Registrar cardio</CardTitle>
-            <p className="text-sm text-muted-foreground">Opcional, só salva se você informar.</p>
-          </CardHeader>
-          <CardContent>
-            <CardioQuickForm
-              date={today}
-              currentMinutes={todayEntry?.cardioMinutes ?? null}
-              onSave={(cardioMinutes) =>
-                saveEntry({
-                  date: today,
-                  status: todayEntry?.status === "workout" || todayEntry?.status === "both" ? "both" : "cardio",
-                  cardioMinutes
-                })
-              }
-            />
-          </CardContent>
-        </Card>
+        <VolumeSummaryCard trainingWeek={trainingWeek} cardioWeek={cardioWeek} totalLoadWeek={totalLoadWeek} />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -142,34 +167,96 @@ export function DashboardPage() {
 }
 
 function CardioQuickForm({
-  date,
-  currentMinutes,
+  defaultDate,
   onSave
 }: {
-  date: string;
-  currentMinutes: number | null;
-  onSave: (minutes: number) => void;
+  defaultDate: string;
+  onSave: (date: string, minutes: number) => void;
 }) {
-  const [minutesValue, setMinutesValue] = useState(currentMinutes?.toString() ?? "");
+  const [date, setDate] = useState(defaultDate);
+  const [minutesValue, setMinutesValue] = useState("");
 
   function save() {
     const parsed = Number(minutesValue);
-    if (Number.isFinite(parsed) && parsed > 0) onSave(parsed);
+    if (Number.isFinite(parsed) && parsed > 0) onSave(date, parsed);
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row">
-      <input className="h-10 flex-1 rounded-md border bg-background px-3 text-sm" value={date} type="date" readOnly />
+    <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+      <input className="h-11 rounded-md border bg-background px-3 text-sm" value={date} type="date" onChange={(event) => setDate(event.target.value)} />
       <input
-        className="h-10 flex-1 rounded-md border bg-background px-3 text-sm"
+        className="h-11 rounded-md border bg-background px-3 text-sm"
         inputMode="numeric"
         placeholder="minutos de cardio"
         value={minutesValue}
         onChange={(event) => setMinutesValue(event.target.value)}
       />
-      <button className="h-10 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground" type="button" onClick={save}>
-        Salvar cardio
+      <button className="h-11 rounded-md bg-secondary px-4 text-sm font-semibold text-secondary-foreground" type="button" onClick={save}>
+        <span className="inline-flex items-center gap-2">
+          <Save className="h-4 w-4" />
+          Salvar cardio
+        </span>
       </button>
     </div>
+  );
+}
+
+function WeightQuickForm({ defaultDate, onSave }: { defaultDate: string; onSave: (date: string, weight: number) => void }) {
+  const [date, setDate] = useState(defaultDate);
+  const [weightValue, setWeightValue] = useState("");
+
+  function save() {
+    const parsed = Number(weightValue.replace(",", "."));
+    if (Number.isFinite(parsed) && parsed > 0) onSave(date, parsed);
+  }
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] xl:grid-cols-1">
+      <input className="h-11 rounded-md border bg-background px-3 text-sm" value={date} type="date" onChange={(event) => setDate(event.target.value)} />
+      <input
+        className="h-11 rounded-md border bg-background px-3 text-sm"
+        inputMode="decimal"
+        placeholder="peso corporal"
+        value={weightValue}
+        onChange={(event) => setWeightValue(event.target.value)}
+      />
+      <button className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground" type="button" onClick={save}>
+        <span className="inline-flex items-center gap-2">
+          <Save className="h-4 w-4" />
+          Salvar peso
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function VolumeSummaryCard({
+  trainingWeek,
+  cardioWeek,
+  totalLoadWeek
+}: {
+  trainingWeek: number;
+  cardioWeek: number;
+  totalLoadWeek: number;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Resumo da semana</CardTitle>
+        <p className="text-sm text-muted-foreground">Apenas registros salvos por você.</p>
+      </CardHeader>
+      <CardContent className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+        {[
+          ["Treino", minutes(trainingWeek)],
+          ["Cardio", minutes(cardioWeek)],
+          ["Volume", `${Math.round(totalLoadWeek).toLocaleString("pt-BR")}kg`]
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-md border bg-muted/20 p-3">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="mt-1 text-lg font-black tracking-normal">{value}</p>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }

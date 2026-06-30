@@ -13,7 +13,6 @@ interface TodayWorkoutCardProps {
     date: string;
     status: "workout" | "both";
     workoutMinutes: number | null;
-    weight: number | null;
     exerciseLogs: ExerciseLog[];
     notes: string;
   }) => void;
@@ -37,13 +36,11 @@ function initialLogs(workout?: WorkoutPlan, entry?: DailyEntry): ExerciseLog[] {
 }
 
 export function TodayWorkoutCard({ date, workout, entry, onSave }: TodayWorkoutCardProps) {
-  const [weight, setWeight] = useState(entry?.weight?.toString() ?? "");
   const [minutes, setMinutes] = useState(entry?.workoutMinutes?.toString() ?? "");
   const [notes, setNotes] = useState(entry?.notes ?? "");
   const [logs, setLogs] = useState<ExerciseLog[]>(() => initialLogs(workout, entry));
 
   useEffect(() => {
-    setWeight(entry?.weight?.toString() ?? "");
     setMinutes(entry?.workoutMinutes?.toString() ?? "");
     setNotes(entry?.notes ?? "");
     setLogs(initialLogs(workout, entry));
@@ -68,7 +65,6 @@ export function TodayWorkoutCard({ date, workout, entry, onSave }: TodayWorkoutC
       date,
       status: entry?.status === "cardio" || entry?.status === "both" ? "both" : "workout",
       workoutMinutes: toNumber(minutes),
-      weight: toNumber(weight),
       exerciseLogs: logs.filter((log) => log.reps.trim() || log.load !== null),
       notes
     });
@@ -94,11 +90,7 @@ export function TodayWorkoutCard({ date, workout, entry, onSave }: TodayWorkoutC
         )}
       </CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-3 md:grid-cols-3">
-          <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Peso corporal hoje</span>
-            <input className="h-10 w-full rounded-md border bg-background px-3" inputMode="decimal" placeholder="ex: 82,4" value={weight} onChange={(event) => setWeight(event.target.value)} />
-          </label>
+        <div className="grid gap-3 md:grid-cols-2">
           <label className="space-y-1 text-sm">
             <span className="text-muted-foreground">Tempo de treino</span>
             <input className="h-10 w-full rounded-md border bg-background px-3" inputMode="numeric" placeholder="minutos" value={minutes} onChange={(event) => setMinutes(event.target.value)} />

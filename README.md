@@ -1,28 +1,31 @@
 # FITNESS OS
 
-Sistema pessoal focado em treino, cargas, peso corporal, cardio e calendário de consistência.
+Sistema pessoal focado em treino de hoje, cargas por exercício, peso corporal, cardio e calendário de consistência.
 
-## O que existe agora
+## Fluxos principais
 
-- Home centrada no treino de hoje.
-- Cadastro de carga por exercício: séries, reps e kg.
-- Botão `Treinei hoje`.
-- Registro opcional de peso corporal no dia.
-- Registro opcional de cardio em minutos.
+- Treino de hoje em destaque.
+- Registro de séries, reps e carga em kg por exercício.
+- Peso corporal registrado separadamente por data.
+- Cardio registrado separadamente por data.
 - Calendário estilo GitHub com os últimos 365 dias.
 - Gráficos de peso, volume de treino e cardio.
-- Dados começam vazios e são salvos no navegador via `localStorage`.
+- Layout responsivo com navegação inferior no celular.
 
-## O que foi removido
+## Backend
 
-- Avaliações.
-- Fotos.
-- Nutrição.
-- Sono.
-- Água.
-- Conquistas.
-- Notificações.
-- Dados demonstrativos/falsos.
+O app está preparado para usar Supabase como backend principal.
+
+1. Crie um projeto no Supabase.
+2. Rode o SQL em `src/database/schema.sql`.
+3. Configure no Vercel:
+
+```txt
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+Sem essas variáveis, o app usa `localStorage` apenas como fallback de desenvolvimento.
 
 ## Como rodar
 
@@ -38,7 +41,3 @@ Install Command: npm install
 Build Command: npm run build
 Output Directory: dist
 ```
-
-## Observação
-
-O Supabase está preparado, mas o app atual salva localmente. Quando quiser transformar em banco real, use o schema em `src/database/schema.sql`.

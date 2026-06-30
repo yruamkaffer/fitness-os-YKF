@@ -79,11 +79,32 @@ export function AppLayout() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:py-8"
+          className="mx-auto w-full max-w-[1400px] px-4 pb-28 pt-6 sm:px-6 lg:py-8"
         >
           <Outlet />
         </motion.main>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-2 py-2 backdrop-blur-xl lg:hidden">
+        <div className="grid grid-cols-5 gap-1">
+          {navigation.slice(0, 5).map((item) => (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              end={item.href === "/"}
+              className={({ isActive }) =>
+                cn(
+                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-md text-[11px] font-medium text-muted-foreground",
+                  isActive && "bg-muted text-foreground"
+                )
+              }
+            >
+              <item.icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

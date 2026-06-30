@@ -1,63 +1,44 @@
 # FITNESS OS
 
-Dashboard pessoal para treino, cardio, peso, evolução corporal e consistência.
+Sistema pessoal focado em treino, cargas, peso corporal, cardio e calendário de consistência.
 
-## Stack
+## O que existe agora
 
-- React + TypeScript + Vite
-- TailwindCSS + componentes estilo Shadcn/UI
-- Framer Motion + Lucide Icons
-- React Router + React Query + Zustand
-- Supabase preparado em `src/services/supabase.ts`
-- Recharts, date-fns, React Hook Form e Zod preparados no projeto
-- PWA com manifesto e service worker offline
+- Home centrada no treino de hoje.
+- Cadastro de carga por exercício: séries, reps e kg.
+- Botão `Treinei hoje`.
+- Registro opcional de peso corporal no dia.
+- Registro opcional de cardio em minutos.
+- Calendário estilo GitHub com os últimos 365 dias.
+- Gráficos de peso, volume de treino e cardio.
+- Dados começam vazios e são salvos no navegador via `localStorage`.
 
-## Estrutura
+## O que foi removido
 
-```txt
-src/
-  api/          camada de acesso a dados
-  app/          app shell e rotas
-  components/   UI, charts e calendário
-  constants/    navegação e treinos
-  contexts/     providers globais
-  database/     seed e schema de referência
-  features/     módulos e widgets por domínio
-  hooks/        hooks de leitura
-  layouts/      layout principal
-  models/       modelos auxiliares
-  pages/        páginas roteadas
-  services/     PWA, Supabase e Coach IA
-  stores/       Zustand
-  theme/        tokens visuais
-  types/        tipos do domínio fitness
-  utils/        helpers
-```
+- Avaliações.
+- Fotos.
+- Nutrição.
+- Sono.
+- Água.
+- Conquistas.
+- Notificações.
+- Dados demonstrativos/falsos.
 
 ## Como rodar
-
-Instale Node.js LTS e depois execute:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Build de produção:
+## Deploy Vercel
 
-```bash
-npm run build
-npm run preview
+```txt
+Install Command: npm install
+Build Command: npm run build
+Output Directory: dist
 ```
 
-## Módulos implementados nesta versão
+## Observação
 
-- Home Dashboard com métricas reais, entrada rápida de dados, treino do dia, relatório do Coach IA, calendário tipo GitHub, volume semanal e gráfico de peso.
-- Coach IA com relatório diário baseado nos dados.
-- Calendário anual clicável com detalhes do dia.
-- Treinos com rotina semanal, exercícios, carga, séries, RPE, descanso, histórico e PR.
-- Timer com descanso, modo livre, Pomodoro, presets e ações de tela.
-- Peso com gráfico, perda total, média semanal e projeção de meta.
-- Analytics com radar de hábitos, volume semanal e cards de correlação.
-- Dados começam vazios e são salvos no navegador com `localStorage`.
-- Páginas preparadas para Avaliações, Cardio, Conquistas, Metas, Notificações e Configurações.
+O Supabase está preparado, mas o app atual salva localmente. Quando quiser transformar em banco real, use o schema em `src/database/schema.sql`.

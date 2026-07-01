@@ -134,7 +134,7 @@ export function CalendarPage() {
             <CardTitle>Calendário estilo GitHub</CardTitle>
             <p className="text-sm text-muted-foreground">Os quadrados ganham cor quando você salva treino, cardio ou descanso.</p>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
+          <CardContent className="min-w-0 overflow-hidden">
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />
           </CardContent>
         </Card>

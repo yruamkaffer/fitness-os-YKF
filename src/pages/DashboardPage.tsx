@@ -121,13 +121,13 @@ export function DashboardPage() {
         <MetricCard icon={Flame} label="Volume semanal" value={`${Math.round(totalLoadWeek).toLocaleString("pt-BR")}kg`} detail={`${minutes(trainingWeek)} treinando`} />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card>
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>Calendário estilo GitHub</CardTitle>
             <p className="text-sm text-muted-foreground">Dias vazios ficam apagados. Dias salvos ganham cor.</p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 overflow-hidden">
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />
           </CardContent>
         </Card>
@@ -280,15 +280,15 @@ function VolumeSummaryCard({
         <CardTitle>Resumo da semana</CardTitle>
         <p className="text-sm text-muted-foreground">Apenas registros salvos por você.</p>
       </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+      <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-1">
         {[
           ["Treino", minutes(trainingWeek)],
           ["Cardio", minutes(cardioWeek)],
           ["Volume", `${Math.round(totalLoadWeek).toLocaleString("pt-BR")}kg`]
         ].map(([label, value]) => (
-          <div key={label} className="rounded-md border bg-muted/20 p-3">
+          <div key={label} className="min-w-0 rounded-md border bg-muted/20 p-3 last:col-span-2 sm:last:col-span-1">
             <p className="text-xs text-muted-foreground">{label}</p>
-            <p className="mt-1 text-lg font-black tracking-normal">{value}</p>
+            <p className="mt-1 break-words text-base font-black tracking-normal sm:text-lg">{value}</p>
           </div>
         ))}
       </CardContent>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, CalendarDays, Dumbbell, Flame, Save, Scale } from "lucide-react";
+import { Activity, CalendarDays, CheckCircle2, Dumbbell, Flame, Save, Scale } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FitnessHeatmap } from "@/components/calendar/FitnessHeatmap";
@@ -105,7 +105,7 @@ export function DashboardPage() {
                 saveEntry({
                   date,
                   status: existing?.status === "workout" || existing?.status === "both" ? "both" : "cardio",
-                  cardioMinutes
+                  cardioMinutes: (existing?.cardioMinutes ?? 0) + cardioMinutes
                 });
               }}
             />
@@ -201,10 +201,15 @@ function CardioQuickForm({
 }) {
   const [date, setDate] = useState(defaultDate);
   const [minutesValue, setMinutesValue] = useState("");
+  const [savedFlash, setSavedFlash] = useState(false);
 
   function save() {
     const parsed = Number(minutesValue);
-    if (Number.isFinite(parsed) && parsed > 0) onSave(date, parsed);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    onSave(date, parsed);
+    setMinutesValue("");
+    setSavedFlash(true);
+    window.setTimeout(() => setSavedFlash(false), 1100);
   }
 
   return (
@@ -217,10 +222,14 @@ function CardioQuickForm({
         value={minutesValue}
         onChange={(event) => setMinutesValue(event.target.value)}
       />
-      <button className="h-11 rounded-md bg-secondary px-4 text-sm font-semibold text-secondary-foreground" type="button" onClick={save}>
+      <button
+        className={`h-11 rounded-md bg-secondary px-4 text-sm font-semibold text-secondary-foreground transition ${savedFlash ? "motion-safe:animate-pulse brightness-110" : ""}`}
+        type="button"
+        onClick={save}
+      >
         <span className="inline-flex items-center gap-2">
-          <Save className="h-4 w-4" />
-          Salvar cardio
+          {savedFlash ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+          {savedFlash ? "Cardio somado" : "Salvar cardio"}
         </span>
       </button>
     </div>

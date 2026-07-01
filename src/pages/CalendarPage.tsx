@@ -128,18 +128,18 @@ export function CalendarPage() {
         <p className="text-sm font-semibold text-primary">Calendário</p>
         <h1 className="text-3xl font-black tracking-normal">Histórico de treinos</h1>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <Card>
+      <div className="grid gap-4 2xl:grid-cols-[0.95fr_1.05fr]">
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>Calendário estilo GitHub</CardTitle>
             <p className="text-sm text-muted-foreground">Os quadrados ganham cor quando você salva treino, cardio ou descanso.</p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>Cadastrar por data</CardTitle>
             <p className="text-sm text-muted-foreground">{plan ? `${plan.label} · ${plan.focus}` : "Sem treino planejado para esta data."}</p>
@@ -191,17 +191,17 @@ export function CalendarPage() {
                   <div className="rounded-md bg-muted/20 p-3 text-sm text-muted-foreground">Adicione um exercício para registrar treino nesta data.</div>
                 ) : (
                   logs.map((log) => (
-                    <div key={log.exerciseId} className="grid gap-2 rounded-md bg-muted/20 p-2 sm:grid-cols-[1.4fr_0.5fr_0.7fr_0.7fr_auto]">
-                      <input className="h-9 rounded-md border bg-background px-2 text-sm" value={log.name} onChange={(event) => updateLog(log.exerciseId, { name: event.target.value })} />
+                    <div key={log.exerciseId} className="grid min-w-0 gap-2 rounded-md bg-muted/20 p-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(70px,0.5fr)_minmax(90px,0.7fr)_minmax(90px,0.7fr)_auto]">
+                      <input className="h-9 min-w-0 rounded-md border bg-background px-2 text-sm" value={log.name} onChange={(event) => updateLog(log.exerciseId, { name: event.target.value })} />
                       <input
-                        className="h-9 rounded-md border bg-background px-2 text-sm"
+                        className="h-9 min-w-0 rounded-md border bg-background px-2 text-sm"
                         inputMode="numeric"
                         value={log.sets}
                         onChange={(event) => updateLog(log.exerciseId, { sets: Number(event.target.value) || 0 })}
                       />
-                      <input className="h-9 rounded-md border bg-background px-2 text-sm" placeholder="reps" inputMode="decimal" value={log.reps} onChange={(event) => updateLog(log.exerciseId, { reps: event.target.value })} />
+                      <input className="h-9 min-w-0 rounded-md border bg-background px-2 text-sm" placeholder="reps" inputMode="decimal" value={log.reps} onChange={(event) => updateLog(log.exerciseId, { reps: event.target.value })} />
                       <input
-                        className="h-9 rounded-md border bg-background px-2 text-sm"
+                        className="h-9 min-w-0 rounded-md border bg-background px-2 text-sm"
                         placeholder="kg"
                         inputMode="decimal"
                         value={log.load ?? ""}

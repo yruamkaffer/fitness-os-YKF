@@ -28,7 +28,12 @@ function toNumber(value: string) {
 }
 
 function initialLogs(workout?: WorkoutPlan, entry?: DailyEntry): ExerciseLog[] {
-  if (entry?.exerciseLogs?.length) return entry.exerciseLogs;
+  const workoutExerciseIds = new Set((workout?.exercises ?? []).map((exercise) => exercise.id));
+  const entryMatchesWorkout =
+    entry?.exerciseLogs?.length &&
+    (workoutExerciseIds.size === 0 || entry.exerciseLogs.every((log) => workoutExerciseIds.has(log.exerciseId)));
+
+  if (entryMatchesWorkout) return entry.exerciseLogs;
   return (workout?.exercises ?? []).map((exercise) => ({
     exerciseId: exercise.id,
     name: exercise.name,

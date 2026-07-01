@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Save, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -28,11 +29,14 @@ function logsFromEntryOrPlan(entry: DailyEntry | undefined, plan: ReturnType<typ
 
 export function CalendarPage() {
   const { data, today, saveEntry, removeEntry } = useFitnessOverview();
+  const [searchParams, setSearchParams] = useSearchParams();
   const selectedDay = useFitnessStore((state) => state.selectedDay);
   const setSelectedDay = useFitnessStore((state) => state.setSelectedDay);
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState(searchParams.get("date") ?? today);
   const existing = data.entries.find((entry) => entry.date === date);
-  const plan = data.workoutPlan.find((item) => item.weekday === new Date(`${date}T12:00:00`).getDay());
+  const defaultPlanWeekday = new Date(`${date}T12:00:00`).getDay();
+  const [planWeekday, setPlanWeekday] = useState(defaultPlanWeekday);
+  const plan = data.workoutPlan.find((item) => item.weekday === planWeekday);
   const [weight, setWeight] = useState("");
   const [workoutMinutes, setWorkoutMinutes] = useState("");
   const [cardioMinutes, setCardioMinutes] = useState("");
@@ -44,12 +48,32 @@ export function CalendarPage() {
   }, [selectedDay]);
 
   useEffect(() => {
+    const queryDate = searchParams.get("date");
+    if (queryDate) setDate(queryDate);
+  }, [searchParams]);
+
+  useEffect(() => {
+    setPlanWeekday(defaultPlanWeekday);
+  }, [defaultPlanWeekday]);
+
+  useEffect(() => {
     setWeight(existing?.weight?.toString() ?? "");
     setWorkoutMinutes(existing?.workoutMinutes?.toString() ?? "");
     setCardioMinutes(existing?.cardioMinutes?.toString() ?? "");
     setNotes(existing?.notes ?? "");
     setLogs(logsFromEntryOrPlan(existing, plan));
   }, [date, existing, plan]);
+
+  function changeDate(nextDate: string) {
+    setDate(nextDate);
+    setSearchParams({ date: nextDate });
+  }
+
+  function changePlan(nextWeekday: number) {
+    const nextPlan = data.workoutPlan.find((item) => item.weekday === nextWeekday);
+    setPlanWeekday(nextWeekday);
+    setLogs(logsFromEntryOrPlan(existing, nextPlan));
+  }
 
   const totalLoad = useMemo(
     () =>
@@ -77,7 +101,7 @@ export function CalendarPage() {
   function saveRecord() {
     const cardio = toNumber(cardioMinutes);
     const workout = toNumber(workoutMinutes);
-    const exerciseLogs = logs.filter((log) => log.name.trim() && (log.reps.trim() || log.load !== null || log.sets > 0));
+    const exerciseLogs = logs.filter((log) => log.name.trim() && (log.reps.trim() || log.load !== null));
     const hasWorkout = exerciseLogs.length > 0 || (workout ?? 0) > 0;
     const hasCardio = (cardio ?? 0) > 0;
 
@@ -124,7 +148,7 @@ export function CalendarPage() {
             <div className="grid gap-3 sm:grid-cols-4">
               <label className="space-y-1 text-sm">
                 <span className="text-muted-foreground">Data</span>
-                <input className="h-10 w-full rounded-md border bg-background px-3" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+                <input className="h-10 w-full rounded-md border bg-background px-3" type="date" value={date} onChange={(event) => changeDate(event.target.value)} />
               </label>
               <label className="space-y-1 text-sm">
                 <span className="text-muted-foreground">Peso</span>
@@ -139,6 +163,17 @@ export function CalendarPage() {
                 <input className="h-10 w-full rounded-md border bg-background px-3" inputMode="numeric" value={cardioMinutes} onChange={(event) => setCardioMinutes(event.target.value)} />
               </label>
             </div>
+
+            <label className="space-y-1 text-sm">
+              <span className="text-muted-foreground">Treino do dia</span>
+              <select className="h-10 w-full rounded-md border bg-background px-3" value={planWeekday} onChange={(event) => changePlan(Number(event.target.value))}>
+                {data.workoutPlan.map((item) => (
+                  <option key={item.weekday} value={item.weekday}>
+                    {item.label} - {item.focus}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <div className="rounded-md border">
               <div className="flex items-center justify-between border-b px-3 py-2">

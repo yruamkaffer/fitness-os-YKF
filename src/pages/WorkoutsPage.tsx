@@ -2,6 +2,7 @@ import { Dumbbell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
+import { formatExerciseHistory, getExerciseHistory } from "@/utils/training-history";
 
 export function WorkoutsPage() {
   const { data } = useFitnessOverview();
@@ -36,6 +37,7 @@ export function WorkoutsPage() {
                     <p className="text-sm text-muted-foreground">
                       {exercise.sets} séries · {exercise.reps} reps · descanso {exercise.restSeconds}s
                     </p>
+                    <p className="mt-1 text-xs font-semibold text-primary">{formatExerciseHistory(getExerciseHistory(data.entries, exercise.id, exercise.name))}</p>
                   </div>
                 ))
               )}

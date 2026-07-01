@@ -1,4 +1,5 @@
-import { Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
@@ -45,10 +46,19 @@ export function SettingsPage() {
                     {entry.cardioMinutes ? minutes(entry.cardioMinutes) : "--"} · {entry.exerciseLogs.length} exercício(s)
                   </p>
                 </div>
-                <Button variant="danger" size="sm" onClick={() => deleteRecord(entry.date)} type="button">
-                  <Trash2 className="h-4 w-4" />
-                  Excluir
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    className="inline-flex h-8 items-center justify-center gap-2 rounded-md border bg-transparent px-3 text-xs font-semibold transition hover:bg-muted"
+                    to={`/calendar?date=${entry.date}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </Link>
+                  <Button variant="danger" size="sm" onClick={() => deleteRecord(entry.date)} type="button">
+                    <Trash2 className="h-4 w-4" />
+                    Excluir
+                  </Button>
+                </div>
               </div>
             ))
           )}

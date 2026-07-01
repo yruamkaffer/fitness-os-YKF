@@ -65,7 +65,7 @@ export function AppLayout() {
             ))}
           </nav>
           <div className="border-t p-3">
-            <Button className="w-full" onClick={markTodayTrained} type="button">
+            <Button className={cn("w-full", trainedToday && "motion-safe:animate-pulse")} onClick={markTodayTrained} type="button">
               {trainedToday ? <CheckCircle2 className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
               {trainedToday ? "Treino salvo" : "Treinei hoje"}
             </Button>
@@ -87,7 +87,7 @@ export function AppLayout() {
               <Button aria-label="Alternar tema" variant="ghost" size="icon" onClick={toggleTheme} type="button">
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
-              <Button className="hidden sm:inline-flex" onClick={markTodayTrained} type="button">
+              <Button className={cn("hidden sm:inline-flex", trainedToday && "motion-safe:animate-pulse")} onClick={markTodayTrained} type="button">
                 {trainedToday ? <CheckCircle2 className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
                 {trainedToday ? "Salvo" : "Treinei hoje"}
               </Button>
@@ -141,7 +141,7 @@ export function AppLayout() {
             ))}
           </nav>
           <div className="border-t p-3">
-            <Button className="w-full" onClick={markTodayAndCloseMenu} type="button">
+            <Button className={cn("w-full", trainedToday && "motion-safe:animate-pulse")} onClick={markTodayAndCloseMenu} type="button">
               {trainedToday ? <CheckCircle2 className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
               {trainedToday ? "Treino salvo" : "Treinei hoje"}
             </Button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, CalendarDays, Dumbbell, Flame, Save, Scale } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,9 @@ export function DashboardPage() {
   const selectedDay = useFitnessStore((state) => state.selectedDay);
   const setSelectedDay = useFitnessStore((state) => state.setSelectedDay);
   const todayEntry = data.entries.find((entry) => entry.date === today);
-  const todayWorkout = data.workoutPlan.find((plan) => plan.weekday === new Date(`${today}T12:00:00`).getDay());
+  const defaultWeekday = new Date(`${today}T12:00:00`).getDay();
+  const [selectedWorkoutWeekday, setSelectedWorkoutWeekday] = useState(defaultWeekday);
+  const todayWorkout = data.workoutPlan.find((plan) => plan.weekday === selectedWorkoutWeekday);
   const trainedDays = data.entries.filter(isWorkoutDay).length;
   const cardioDays = data.entries.filter(isCardioDay).length;
   const streak = computeCurrentStreak(data.entries);
@@ -26,6 +28,10 @@ export function DashboardPage() {
   const trainingWeek = week.reduce((sum, entry) => sum + (entry.workoutMinutes ?? 0), 0);
   const cardioWeek = week.reduce((sum, entry) => sum + (entry.cardioMinutes ?? 0), 0);
   const totalLoadWeek = week.reduce((sum, entry) => sum + entry.totalLoad, 0);
+
+  useEffect(() => {
+    setSelectedWorkoutWeekday(defaultWeekday);
+  }, [defaultWeekday]);
 
   if (isLoading) {
     return <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">Carregando seus registros...</div>;
@@ -44,7 +50,27 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <TodayWorkoutCard date={today} workout={todayWorkout} entry={todayEntry} onSave={saveEntry} />
+      <Card>
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold">Treino selecionado para hoje</p>
+            <p className="text-sm text-muted-foreground">Troque aqui quando fizer outro treino no dia.</p>
+          </div>
+          <select
+            className="h-10 rounded-md border bg-background px-3 text-sm"
+            value={selectedWorkoutWeekday}
+            onChange={(event) => setSelectedWorkoutWeekday(Number(event.target.value))}
+          >
+            {data.workoutPlan.map((plan) => (
+              <option key={plan.weekday} value={plan.weekday}>
+                {plan.label} - {plan.focus}
+              </option>
+            ))}
+          </select>
+        </CardContent>
+      </Card>
+
+      <TodayWorkoutCard date={today} workout={todayWorkout} entry={todayEntry} entries={data.entries} onSave={saveEntry} />
 
       <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <Card>

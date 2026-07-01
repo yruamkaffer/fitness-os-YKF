@@ -9,7 +9,7 @@ import { SettingsPage } from "@/pages/SettingsPage";
 
 export function App() {
   return (
-    <div className="dark min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <Routes>
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />

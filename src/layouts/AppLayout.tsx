@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CheckCircle2, Dumbbell, Menu, Moon, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, Dumbbell, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navigation } from "@/constants/navigation";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
@@ -9,7 +10,26 @@ import { isWorkoutDay } from "@/utils/stats";
 
 export function AppLayout() {
   const { data, today, markTodayTrained } = useFitnessOverview();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    return window.localStorage.getItem("fitness-os:theme") === "light" ? "light" : "dark";
+  });
   const trainedToday = data.entries.some((entry) => entry.date === today && isWorkoutDay(entry));
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem("fitness-os:theme", theme);
+  }, [theme]);
+
+  function toggleTheme() {
+    setTheme((current) => (current === "dark" ? "light" : "dark"));
+  }
+
+  function markTodayAndCloseMenu() {
+    markTodayTrained();
+    setMobileMenuOpen(false);
+  }
 
   return (
     <div className="min-h-screen text-foreground">
@@ -45,7 +65,7 @@ export function AppLayout() {
             ))}
           </nav>
           <div className="border-t p-3">
-            <Button className="w-full" onClick={markTodayTrained}>
+            <Button className="w-full" onClick={markTodayTrained} type="button">
               {trainedToday ? <CheckCircle2 className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
               {trainedToday ? "Treino salvo" : "Treinei hoje"}
             </Button>
@@ -56,7 +76,7 @@ export function AppLayout() {
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 border-b bg-background/80 px-4 py-3 backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-3">
-            <Button aria-label="Menu" variant="ghost" size="icon" className="lg:hidden">
+            <Button aria-label="Menu" variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)} type="button">
               <Menu className="h-5 w-5" />
             </Button>
             <div className="hidden min-w-0 flex-1 items-center gap-3 rounded-md border bg-card px-3 py-2 text-sm text-muted-foreground md:flex">
@@ -64,10 +84,10 @@ export function AppLayout() {
               Buscar treino, peso ou cardio
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <Button aria-label="Alternar tema" variant="ghost" size="icon">
-                <Moon className="h-4 w-4" />
+              <Button aria-label="Alternar tema" variant="ghost" size="icon" onClick={toggleTheme} type="button">
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
-              <Button className="hidden sm:inline-flex" onClick={markTodayTrained}>
+              <Button className="hidden sm:inline-flex" onClick={markTodayTrained} type="button">
                 {trainedToday ? <CheckCircle2 className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
                 {trainedToday ? "Salvo" : "Treinei hoje"}
               </Button>
@@ -84,6 +104,50 @@ export function AppLayout() {
           <Outlet />
         </motion.main>
       </div>
+
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl lg:hidden">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Dumbbell className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-black tracking-normal">FITNESS OS</p>
+                <p className="text-xs text-muted-foreground">Treino e evolução</p>
+              </div>
+            </div>
+            <Button aria-label="Fechar menu" variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)} type="button">
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <nav className="space-y-1 p-3">
+            {navigation.map((item) => (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                end={item.href === "/"}
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    "flex h-12 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
+                    isActive && "bg-muted text-foreground"
+                  )
+                }
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="border-t p-3">
+            <Button className="w-full" onClick={markTodayAndCloseMenu} type="button">
+              {trainedToday ? <CheckCircle2 className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
+              {trainedToday ? "Treino salvo" : "Treinei hoje"}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-2 py-2 backdrop-blur-xl lg:hidden">
         <div className="grid grid-cols-5 gap-1">

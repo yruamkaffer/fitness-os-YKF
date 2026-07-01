@@ -3,6 +3,7 @@ import { supabase } from "@/services/supabase";
 import type { DailyEntry, DailyEntryInput, ExerciseLog, FitnessOverview, FitnessProfile } from "@/types/fitness";
 
 const STORAGE_KEY = "fitness-os:v3";
+const SUPABASE_WRITE_BLOCKED_KEY = "fitness-os:supabase-write-blocked";
 const PROFILE_ID = "default";
 
 const emptyProfile: FitnessProfile = {
@@ -104,6 +105,20 @@ function saveLocalOverview(overview: FitnessOverview) {
       entries: overview.entries
     })
   );
+}
+
+function isSupabaseWriteBlocked() {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(SUPABASE_WRITE_BLOCKED_KEY) === "true";
+}
+
+function markSupabaseWriteBlocked() {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SUPABASE_WRITE_BLOCKED_KEY, "true");
+}
+
+function hasLocalData(overview: FitnessOverview) {
+  return overview.entries.length > 0 || overview.profile.startedAt !== null || overview.profile.currentWeight !== null;
 }
 
 function applyProfilePatch(overview: FitnessOverview, patch: Partial<FitnessProfile>) {
@@ -257,6 +272,9 @@ async function saveSupabaseEntry(overview: FitnessOverview, input: DailyEntryInp
 }
 
 export async function loadFitnessOverview(): Promise<FitnessOverview> {
+  const localOverview = loadLocalOverview();
+  if (isSupabaseWriteBlocked() && hasLocalData(localOverview)) return localOverview;
+
   if (supabase) {
     try {
       const overview = await loadSupabaseOverview();
@@ -266,13 +284,18 @@ export async function loadFitnessOverview(): Promise<FitnessOverview> {
     }
   }
 
-  return loadLocalOverview();
+  return localOverview;
 }
 
 export async function updateProfile(overview: FitnessOverview, patch: Partial<FitnessProfile>) {
   if (supabase) {
-    const next = await saveSupabaseProfile(overview, patch);
-    if (next) return next;
+    try {
+      const next = await saveSupabaseProfile(overview, patch);
+      if (next) return next;
+    } catch (error) {
+      console.warn("Supabase profile save failed. Using local fallback.", error);
+      markSupabaseWriteBlocked();
+    }
   }
 
   const next = applyProfilePatch(overview, patch);
@@ -282,8 +305,13 @@ export async function updateProfile(overview: FitnessOverview, patch: Partial<Fi
 
 export async function upsertEntry(overview: FitnessOverview, input: DailyEntryInput) {
   if (supabase) {
-    const next = await saveSupabaseEntry(overview, input);
-    if (next) return next;
+    try {
+      const next = await saveSupabaseEntry(overview, input);
+      if (next) return next;
+    } catch (error) {
+      console.warn("Supabase entry save failed. Using local fallback.", error);
+      markSupabaseWriteBlocked();
+    }
   }
 
   const next = applyEntryPatch(overview, input);

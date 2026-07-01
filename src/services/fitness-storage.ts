@@ -146,6 +146,13 @@ function applyEntryPatch(overview: FitnessOverview, input: DailyEntryInput) {
   });
 }
 
+function applyEntryDelete(overview: FitnessOverview, date: string) {
+  return enrich({
+    profile: overview.profile,
+    entries: overview.entries.filter((entry) => entry.date !== date)
+  });
+}
+
 async function ensureSupabaseProfile() {
   if (!supabase) return emptyProfile;
 
@@ -271,6 +278,14 @@ async function saveSupabaseEntry(overview: FitnessOverview, input: DailyEntryInp
   return loadSupabaseOverview();
 }
 
+async function deleteSupabaseEntry(date: string) {
+  if (!supabase) return null;
+
+  const { error } = await supabase.from("daily_entries").delete().eq("profile_id", PROFILE_ID).eq("date", date);
+  if (error) throw error;
+  return loadSupabaseOverview();
+}
+
 export async function loadFitnessOverview(): Promise<FitnessOverview> {
   const localOverview = loadLocalOverview();
   if (isSupabaseWriteBlocked() && hasLocalData(localOverview)) return localOverview;
@@ -315,6 +330,22 @@ export async function upsertEntry(overview: FitnessOverview, input: DailyEntryIn
   }
 
   const next = applyEntryPatch(overview, input);
+  saveLocalOverview(next);
+  return next;
+}
+
+export async function deleteEntry(overview: FitnessOverview, date: string) {
+  if (supabase && !isSupabaseWriteBlocked()) {
+    try {
+      const next = await deleteSupabaseEntry(date);
+      if (next) return next;
+    } catch (error) {
+      console.warn("Supabase entry delete failed. Using local fallback.", error);
+      markSupabaseWriteBlocked();
+    }
+  }
+
+  const next = applyEntryDelete(overview, date);
   saveLocalOverview(next);
   return next;
 }

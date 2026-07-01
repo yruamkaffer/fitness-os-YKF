@@ -1,18 +1,57 @@
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFitnessOverview } from "@/hooks/useFitnessOverview";
+import { minutes, optionalKg } from "@/utils/format";
 
 export function SettingsPage() {
+  const { data, removeEntry } = useFitnessOverview();
+  const entries = [...data.entries].sort((a, b) => b.date.localeCompare(a.date));
+
+  function deleteRecord(date: string) {
+    const confirmed = window.confirm(`Excluir o registro de ${new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR")}?`);
+    if (confirmed) removeEntry(date);
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold text-primary">Configurações</p>
-        <h1 className="text-3xl font-black tracking-normal">Dados locais</h1>
+        <h1 className="text-3xl font-black tracking-normal">Dados e registros</h1>
       </div>
       <Card>
         <CardHeader>
           <CardTitle>Armazenamento</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Seus registros ficam salvos no navegador deste dispositivo. Quando você quiser, este mesmo fluxo pode ser ligado ao Supabase.
+          Seus registros ficam salvos neste dispositivo quando o Supabase não aceita escrita.
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Registros salvos</CardTitle>
+          <p className="text-sm text-muted-foreground">{entries.length} dia(s) com dados cadastrados.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {entries.length === 0 ? (
+            <div className="rounded-md border bg-muted/20 p-4 text-sm text-muted-foreground">Nenhum registro salvo ainda.</div>
+          ) : (
+            entries.map((entry) => (
+              <div key={entry.date} className="flex flex-col gap-3 rounded-md border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold">{new Date(`${entry.date}T12:00:00`).toLocaleDateString("pt-BR")}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {entry.status} · peso {optionalKg(entry.weight)} · treino {entry.workoutMinutes ? minutes(entry.workoutMinutes) : "--"} · cardio{" "}
+                    {entry.cardioMinutes ? minutes(entry.cardioMinutes) : "--"} · {entry.exerciseLogs.length} exercício(s)
+                  </p>
+                </div>
+                <Button variant="danger" size="sm" onClick={() => deleteRecord(entry.date)} type="button">
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

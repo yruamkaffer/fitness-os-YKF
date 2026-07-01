@@ -1,31 +1,94 @@
 import { useEffect, useMemo, useState } from "react";
-import { Maximize2, Pause, Play, RotateCcw, TimerReset } from "lucide-react";
+import { Bell, Maximize2, Pause, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
 
-type Mode = "rest" | "free" | "pomodoro";
+type Mode = "rest" | "free" | "pomodoro" | "rounds";
 
 const presets = [30, 45, 60, 90, 120, 180];
+
+function formatTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function playBeep() {
+  const browserWindow = window as Window & { webkitAudioContext?: typeof AudioContext };
+  const AudioContextClass = AudioContext || browserWindow.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  const audio = new AudioContextClass();
+  const oscillator = audio.createOscillator();
+  const gain = audio.createGain();
+
+  oscillator.type = "sine";
+  oscillator.frequency.value = 880;
+  gain.gain.setValueAtTime(0.001, audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.35, audio.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.35);
+  oscillator.connect(gain);
+  gain.connect(audio.destination);
+  oscillator.start();
+  oscillator.stop(audio.currentTime + 0.38);
+}
 
 export function TimerPage() {
   const [mode, setMode] = useState<Mode>("rest");
   const [seconds, setSeconds] = useState(90);
   const [running, setRunning] = useState(false);
+  const [roundTotalMinutes, setRoundTotalMinutes] = useState(10);
+  const [roundIntervalSeconds, setRoundIntervalSeconds] = useState(60);
+
+  const roundTotalSeconds = roundTotalMinutes * 60;
 
   useEffect(() => {
     if (!running) return;
-    const id = window.setInterval(() => {
-      setSeconds((value) => (mode === "free" ? value + 1 : Math.max(0, value - 1)));
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [mode, running]);
 
-  const label = useMemo(() => {
-    const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
-    const rest = (seconds % 60).toString().padStart(2, "0");
-    return `${minutes}:${rest}`;
-  }, [seconds]);
+    const id = window.setInterval(() => {
+      setSeconds((value) => {
+        if (mode === "free") return value + 1;
+
+        if (mode === "rounds") {
+          const next = Math.min(value + 1, roundTotalSeconds);
+          if (next > 0 && (next % roundIntervalSeconds === 0 || next === roundTotalSeconds)) playBeep();
+          if (next >= roundTotalSeconds) setRunning(false);
+          return next;
+        }
+
+        const next = Math.max(0, value - 1);
+        if (next === 0) {
+          playBeep();
+          setRunning(false);
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(id);
+  }, [mode, roundIntervalSeconds, roundTotalSeconds, running]);
+
+  const label = useMemo(() => formatTime(seconds), [seconds]);
+  const roundLabel = useMemo(() => `${formatTime(seconds)} / ${formatTime(roundTotalSeconds)}`, [roundTotalSeconds, seconds]);
+  const currentRound = Math.max(1, Math.floor(seconds / roundIntervalSeconds) + 1);
+
+  function switchMode(value: Mode) {
+    setRunning(false);
+    setMode(value);
+    setSeconds(value === "pomodoro" ? 25 * 60 : value === "free" || value === "rounds" ? 0 : 90);
+  }
+
+  function resetTimer() {
+    setRunning(false);
+    setSeconds(mode === "pomodoro" ? 25 * 60 : mode === "free" || mode === "rounds" ? 0 : 90);
+  }
+
+  function openFullscreen() {
+    const target = document.documentElement;
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void target.requestFullscreen?.();
+  }
 
   return (
     <div className="space-y-6">
@@ -35,45 +98,83 @@ export function TimerPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Descanso, livre e Pomodoro</CardTitle>
+          <CardTitle>Descanso, livre, Pomodoro e rounds</CardTitle>
           <Tabs
             value={mode}
-            onChange={(value) => {
-              setMode(value);
-              setSeconds(value === "pomodoro" ? 25 * 60 : value === "free" ? 0 : 90);
-            }}
+            onChange={switchMode}
             items={[
               { value: "rest", label: "Descanso" },
               { value: "free", label: "Livre" },
-              { value: "pomodoro", label: "Pomodoro" }
+              { value: "pomodoro", label: "Pomodoro" },
+              { value: "rounds", label: "Rounds" }
             ]}
           />
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex aspect-[16/7] min-h-64 items-center justify-center rounded-lg border bg-muted/20">
-            <span className="text-7xl font-black tracking-normal sm:text-8xl">{label}</span>
+          <div className="flex aspect-[16/7] min-h-64 flex-col items-center justify-center rounded-lg border bg-muted/20">
+            <span className="text-6xl font-black tracking-normal sm:text-8xl">{mode === "rounds" ? roundLabel : label}</span>
+            {mode === "rounds" && <span className="mt-3 text-sm font-semibold text-muted-foreground">Round {currentRound}</span>}
           </div>
+
+          {mode === "rounds" ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1 text-sm">
+                <span className="text-muted-foreground">Duração total</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                    inputMode="numeric"
+                    value={roundTotalMinutes}
+                    onChange={(event) => {
+                      setRunning(false);
+                      setSeconds(0);
+                      setRoundTotalMinutes(Math.max(1, Number(event.target.value) || 1));
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">min</span>
+                </div>
+              </label>
+              <label className="space-y-1 text-sm">
+                <span className="text-muted-foreground">Alarme a cada</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                    inputMode="numeric"
+                    value={roundIntervalSeconds}
+                    onChange={(event) => {
+                      setRunning(false);
+                      setSeconds(0);
+                      setRoundIntervalSeconds(Math.max(5, Number(event.target.value) || 60));
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">s</span>
+                </div>
+              </label>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {presets.map((preset) => (
+                <Button key={preset} variant="outline" onClick={() => setSeconds(preset)} type="button">
+                  {preset}s
+                </Button>
+              ))}
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2">
-            {presets.map((preset) => (
-              <Button key={preset} variant="outline" onClick={() => setSeconds(preset)}>
-                {preset}s
-              </Button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setRunning((value) => !value)}>
+            <Button onClick={() => setRunning((value) => !value)} type="button">
               {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               {running ? "Pausar" : "Iniciar"}
             </Button>
-            <Button variant="outline" onClick={() => setSeconds(mode === "pomodoro" ? 25 * 60 : mode === "free" ? 0 : 90)}>
+            <Button variant="outline" onClick={resetTimer} type="button">
               <RotateCcw className="h-4 w-4" />
               Resetar
             </Button>
-            <Button variant="secondary">
-              <TimerReset className="h-4 w-4" />
+            <Button variant="secondary" onClick={playBeep} type="button">
+              <Bell className="h-4 w-4" />
               Alarme
             </Button>
-            <Button variant="ghost">
+            <Button variant="ghost" onClick={openFullscreen} type="button">
               <Maximize2 className="h-4 w-4" />
               Tela cheia
             </Button>

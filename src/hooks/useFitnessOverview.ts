@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  deleteEntry,
   emptyOverview,
   loadFitnessOverview,
   markTodayWorkout,
@@ -59,12 +60,20 @@ export function useFitnessOverview() {
     void commit(markTodayWorkout(data));
   }, [commit, data]);
 
+  const removeEntry = useCallback(
+    (date: string) => {
+      void commit(deleteEntry(data, date));
+    },
+    [commit, data]
+  );
+
   return {
     data,
     isLoading,
     today: todayISO(),
     saveProfile,
     saveEntry,
+    removeEntry,
     markTodayTrained
   };
 }

@@ -117,8 +117,33 @@ function markSupabaseWriteBlocked() {
   window.localStorage.setItem(SUPABASE_WRITE_BLOCKED_KEY, "true");
 }
 
+function clearSupabaseWriteBlocked() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(SUPABASE_WRITE_BLOCKED_KEY);
+}
+
 function hasLocalData(overview: FitnessOverview) {
   return overview.entries.length > 0 || overview.profile.startedAt !== null || overview.profile.currentWeight !== null;
+}
+
+function mergeOverviews(remote: FitnessOverview, local: FitnessOverview) {
+  const entriesByDate = new Map(remote.entries.map((entry) => [entry.date, entry]));
+
+  local.entries.forEach((entry) => {
+    const remoteEntry = entriesByDate.get(entry.date);
+    entriesByDate.set(entry.date, normalizeEntry(entry, remoteEntry));
+  });
+
+  return enrich({
+    profile: {
+      name: local.profile.name || remote.profile.name,
+      startWeight: local.profile.startWeight ?? remote.profile.startWeight,
+      currentWeight: local.profile.currentWeight ?? remote.profile.currentWeight,
+      goalWeight: local.profile.goalWeight ?? remote.profile.goalWeight,
+      startedAt: local.profile.startedAt ?? remote.profile.startedAt
+    },
+    entries: [...entriesByDate.values()]
+  });
 }
 
 function applyProfilePatch(overview: FitnessOverview, patch: Partial<FitnessProfile>) {
@@ -286,13 +311,30 @@ async function deleteSupabaseEntry(date: string) {
   return loadSupabaseOverview();
 }
 
+async function saveSupabaseOverview(overview: FitnessOverview) {
+  if (!supabase) return null;
+
+  await saveSupabaseProfile(overview, overview.profile);
+  for (const entry of overview.entries) {
+    await saveSupabaseEntry(overview, entry);
+  }
+
+  clearSupabaseWriteBlocked();
+  return loadSupabaseOverview();
+}
+
 export async function loadFitnessOverview(): Promise<FitnessOverview> {
   const localOverview = loadLocalOverview();
-  if (isSupabaseWriteBlocked() && hasLocalData(localOverview)) return localOverview;
 
   if (supabase) {
     try {
       const overview = await loadSupabaseOverview();
+      if (overview && isSupabaseWriteBlocked() && hasLocalData(localOverview)) {
+        const merged = mergeOverviews(overview, localOverview);
+        const synced = await saveSupabaseOverview(merged);
+        if (synced) return synced;
+        return merged;
+      }
       if (overview) return overview;
     } catch (error) {
       console.error("Supabase load failed. Using local fallback.", error);
@@ -306,7 +348,10 @@ export async function updateProfile(overview: FitnessOverview, patch: Partial<Fi
   if (supabase) {
     try {
       const next = await saveSupabaseProfile(overview, patch);
-      if (next) return next;
+      if (next) {
+        clearSupabaseWriteBlocked();
+        return next;
+      }
     } catch (error) {
       console.warn("Supabase profile save failed. Using local fallback.", error);
       markSupabaseWriteBlocked();
@@ -322,7 +367,10 @@ export async function upsertEntry(overview: FitnessOverview, input: DailyEntryIn
   if (supabase) {
     try {
       const next = await saveSupabaseEntry(overview, input);
-      if (next) return next;
+      if (next) {
+        clearSupabaseWriteBlocked();
+        return next;
+      }
     } catch (error) {
       console.warn("Supabase entry save failed. Using local fallback.", error);
       markSupabaseWriteBlocked();
@@ -335,10 +383,13 @@ export async function upsertEntry(overview: FitnessOverview, input: DailyEntryIn
 }
 
 export async function deleteEntry(overview: FitnessOverview, date: string) {
-  if (supabase && !isSupabaseWriteBlocked()) {
+  if (supabase) {
     try {
       const next = await deleteSupabaseEntry(date);
-      if (next) return next;
+      if (next) {
+        clearSupabaseWriteBlocked();
+        return next;
+      }
     } catch (error) {
       console.warn("Supabase entry delete failed. Using local fallback.", error);
       markSupabaseWriteBlocked();

@@ -39,5 +39,50 @@ create table if not exists exercise_logs (
 create index if not exists daily_entries_profile_date_idx on daily_entries(profile_id, date);
 create index if not exists exercise_logs_profile_date_idx on exercise_logs(profile_id, entry_date);
 
--- For a private personal app, keep the Supabase project private and use only your anon key in Vercel.
--- If you enable RLS later, add policies scoped to authenticated users before collecting sensitive data.
+alter table profiles enable row level security;
+alter table daily_entries enable row level security;
+alter table exercise_logs enable row level security;
+
+drop policy if exists "Personal app can read profiles" on profiles;
+drop policy if exists "Personal app can write profiles" on profiles;
+drop policy if exists "Personal app can read daily entries" on daily_entries;
+drop policy if exists "Personal app can write daily entries" on daily_entries;
+drop policy if exists "Personal app can read exercise logs" on exercise_logs;
+drop policy if exists "Personal app can write exercise logs" on exercise_logs;
+
+create policy "Personal app can read profiles"
+  on profiles for select
+  to anon
+  using (true);
+
+create policy "Personal app can write profiles"
+  on profiles for all
+  to anon
+  using (true)
+  with check (true);
+
+create policy "Personal app can read daily entries"
+  on daily_entries for select
+  to anon
+  using (true);
+
+create policy "Personal app can write daily entries"
+  on daily_entries for all
+  to anon
+  using (true)
+  with check (true);
+
+create policy "Personal app can read exercise logs"
+  on exercise_logs for select
+  to anon
+  using (true);
+
+create policy "Personal app can write exercise logs"
+  on exercise_logs for all
+  to anon
+  using (true)
+  with check (true);
+
+-- This is a private single-user personal app. These anon policies allow the public
+-- frontend key to sync data across devices. Add Supabase Auth before storing data
+-- for multiple users or any information that should not be writable by the app URL.

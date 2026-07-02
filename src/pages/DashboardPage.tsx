@@ -125,7 +125,7 @@ export function DashboardPage() {
         <Card className="min-w-0">
           <CardHeader>
             <CardTitle>Calendário estilo GitHub</CardTitle>
-            <p className="text-sm text-muted-foreground">Dias vazios ficam apagados. Dias salvos ganham cor.</p>
+            <p className="text-sm text-muted-foreground">Últimos 30 dias. Dias salvos ganham cor.</p>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />

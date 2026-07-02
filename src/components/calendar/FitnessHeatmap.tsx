@@ -32,7 +32,7 @@ function emptyEntry(date: string): DailyEntry {
 export function FitnessHeatmap({ entries, onSelect }: FitnessHeatmapProps) {
   const byDate = new Map(entries.map((entry) => [entry.date, entry]));
   const days = eachDayOfInterval({
-    start: subDays(new Date(), 364),
+    start: subDays(new Date(), 29),
     end: new Date()
   }).map((day) => {
     const date = format(day, "yyyy-MM-dd");
@@ -41,8 +41,12 @@ export function FitnessHeatmap({ entries, onSelect }: FitnessHeatmapProps) {
 
   return (
     <div className="min-w-0 space-y-4">
-      <div className="max-w-full overflow-x-auto pb-2">
-        <div className="grid w-max grid-flow-col grid-rows-7 gap-1">
+      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <span>Últimos 30 dias</span>
+        <span>{days.filter((entry) => entry.status !== "none").length}/30 ativos</span>
+      </div>
+      <div className="max-w-full overflow-hidden pb-1">
+        <div className="grid grid-cols-10 gap-1 sm:grid-cols-[repeat(15,0.875rem)] lg:grid-cols-[repeat(30,0.875rem)]">
           {days.map((entry) => (
             <button
               key={entry.date}
@@ -50,7 +54,7 @@ export function FitnessHeatmap({ entries, onSelect }: FitnessHeatmapProps) {
               aria-label={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${labels[entry.status]}`}
               title={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${labels[entry.status]}`}
               onClick={() => onSelect(entry)}
-              className={cn("h-3 w-3 shrink-0 rounded-[3px] ring-1 ring-white/5 transition hover:scale-125 sm:h-3.5 sm:w-3.5", theme.heatmap[entry.status])}
+              className={cn("aspect-square w-full rounded-[3px] ring-1 ring-white/5 transition hover:scale-125", theme.heatmap[entry.status])}
             />
           ))}
         </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Save, Trash2, X } from "lucide-react";
+import { Activity, CalendarDays, Dumbbell, Flame, Plus, Save, Timer, Trash2, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { useFitnessStore } from "@/stores/fitness-store";
 import type { DailyEntry, ExerciseLog } from "@/types/fitness";
 import { minutes, optionalKg } from "@/utils/format";
+import { computeBestStreak, computeCurrentStreak, isCardioDay, isWorkoutDay } from "@/utils/stats";
 
 function toNumber(value: string) {
   if (!value.trim()) return null;
@@ -42,6 +43,13 @@ export function CalendarPage() {
   const [cardioMinutes, setCardioMinutes] = useState("");
   const [notes, setNotes] = useState("");
   const [logs, setLogs] = useState<ExerciseLog[]>([]);
+  const workoutEntries = data.entries.filter(isWorkoutDay);
+  const cardioEntries = data.entries.filter(isCardioDay);
+  const totalWorkoutMinutes = data.entries.reduce((sum, entry) => sum + (entry.workoutMinutes ?? 0), 0);
+  const totalCardioMinutes = data.entries.reduce((sum, entry) => sum + (entry.cardioMinutes ?? 0), 0);
+  const totalLoadSaved = data.entries.reduce((sum, entry) => sum + entry.totalLoad, 0);
+  const totalExerciseLogs = data.entries.reduce((sum, entry) => sum + entry.exerciseLogs.length, 0);
+  const bestVolumeDay = data.entries.reduce<DailyEntry | undefined>((best, entry) => (!best || entry.totalLoad > best.totalLoad ? entry : best), undefined);
 
   useEffect(() => {
     if (selectedDay) setDate(selectedDay.date);
@@ -128,11 +136,58 @@ export function CalendarPage() {
         <p className="text-sm font-semibold text-primary">Calendário</p>
         <h1 className="text-3xl font-black tracking-normal">Histórico de treinos</h1>
       </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          { label: "Treinos", value: `${workoutEntries.length}`, detail: `${totalExerciseLogs} exercícios registrados`, icon: Dumbbell },
+          { label: "Cardio", value: `${cardioEntries.length}`, detail: `${minutes(totalCardioMinutes)} totais`, icon: Activity },
+          { label: "Volume total", value: `${Math.round(totalLoadSaved).toLocaleString("pt-BR")}kg`, detail: `${minutes(totalWorkoutMinutes)} treinando`, icon: Flame },
+          { label: "Sequência", value: `${computeCurrentStreak(data.entries)} dias`, detail: `melhor: ${computeBestStreak(data.entries)} dias`, icon: CalendarDays }
+        ].map(({ label, value, detail, icon: Icon }) => (
+          <Card key={label} className="min-w-0">
+            <CardContent className="flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="mt-1 break-words text-xl font-black tracking-normal">{value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+              </div>
+              <Icon className="h-5 w-5 shrink-0 text-primary" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Card className="min-w-0">
+          <CardContent className="flex items-center justify-between gap-3 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Melhor dia de volume</p>
+              <p className="mt-1 text-lg font-black tracking-normal">
+                {bestVolumeDay && bestVolumeDay.totalLoad > 0 ? `${Math.round(bestVolumeDay.totalLoad).toLocaleString("pt-BR")}kg` : "--"}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {bestVolumeDay && bestVolumeDay.totalLoad > 0 ? new Date(`${bestVolumeDay.date}T12:00:00`).toLocaleDateString("pt-BR") : "Sem treino com carga ainda"}
+              </p>
+            </div>
+            <Trophy className="h-5 w-5 text-primary" />
+          </CardContent>
+        </Card>
+        <Card className="min-w-0">
+          <CardContent className="flex items-center justify-between gap-3 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Média por treino</p>
+              <p className="mt-1 text-lg font-black tracking-normal">
+                {workoutEntries.length > 0 ? `${Math.round(totalLoadSaved / workoutEntries.length).toLocaleString("pt-BR")}kg` : "--"}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">volume médio nos dias de treino</p>
+            </div>
+            <Timer className="h-5 w-5 text-primary" />
+          </CardContent>
+        </Card>
+      </div>
       <div className="grid gap-4 2xl:grid-cols-[0.95fr_1.05fr]">
         <Card className="min-w-0">
           <CardHeader>
             <CardTitle>Calendário estilo GitHub</CardTitle>
-            <p className="text-sm text-muted-foreground">Os quadrados ganham cor quando você salva treino, cardio ou descanso.</p>
+            <p className="text-sm text-muted-foreground">Últimos 30 dias. Os quadrados ganham cor quando você salva treino, cardio ou descanso.</p>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />

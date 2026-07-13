@@ -18,15 +18,15 @@ const tones = {
 
 export function MetricCard({ label, value, detail, icon: Icon, tone = "primary" }: MetricCardProps) {
   return (
-    <Card>
+    <Card className="group">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="mt-2 text-2xl font-black tracking-normal">{value}</p>
+            <p className="mt-2 text-2xl font-black tracking-normal transition-colors group-hover:text-primary">{value}</p>
             <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
           </div>
-          <div className={cn("flex h-10 w-10 items-center justify-center rounded-md", tones[tone])}>
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-md shadow-sm transition duration-300 group-hover:scale-105", tones[tone])}>
             <Icon className="h-5 w-5" />
           </div>
         </div>

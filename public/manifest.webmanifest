@@ -4,9 +4,15 @@
   "description": "Sistema operacional pessoal de evolucao fisica.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#071014",
-  "theme_color": "#071014",
+  "background_color": "#09090d",
+  "theme_color": "#09090d",
   "icons": [
+    {
+      "src": "/fitness-os-logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon.svg",
       "sizes": "any",

@@ -1,11 +1,14 @@
 import { Dumbbell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageLoadingState } from "@/components/ui/loading-state";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { formatExerciseHistory, getExerciseHistory } from "@/utils/training-history";
 
 export function WorkoutsPage() {
-  const { data } = useFitnessOverview();
+  const { data, isLoading } = useFitnessOverview();
+
+  if (isLoading) return <PageLoadingState />;
 
   return (
     <div className="space-y-6">
@@ -16,7 +19,7 @@ export function WorkoutsPage() {
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
         {data.workoutPlan.map((workout) => (
-          <Card key={workout.weekday}>
+          <Card key={workout.weekday} className="group">
             <CardHeader>
               <div>
                 <CardTitle className="flex items-center gap-2">
@@ -32,7 +35,7 @@ export function WorkoutsPage() {
                 <div className="rounded-md border bg-muted/20 p-4 text-sm text-muted-foreground">Dia sem musculação planejada.</div>
               ) : (
                 workout.exercises.map((exercise) => (
-                  <div key={exercise.id} className="rounded-md border bg-muted/20 p-3">
+                  <div key={exercise.id} className="rounded-md border bg-muted/20 p-3 transition duration-200 hover:border-secondary/35 hover:bg-secondary/5">
                     <p className="font-semibold">{exercise.name}</p>
                     <p className="text-sm text-muted-foreground">
                       {exercise.sets} séries · {exercise.reps} reps · descanso {exercise.restSeconds}s

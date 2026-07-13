@@ -5,8 +5,35 @@ export interface ExerciseHistory {
   pr?: ExerciseLog;
 }
 
+const exerciseAliases: Record<string, string[]> = {
+  "supino-inclinado": ["supino-inclinado-quinta"],
+  "remada-curvada": ["remada-curvada-quinta"],
+  "desenvolvimento-militar": ["desenvolvimento-quinta", "desenvolvimento"],
+  "remada-unilateral": ["remada-unilateral-halter", "remada-unilateral-quinta", "remada unilateral com halter"],
+  "encolhimento": ["encolhimento-trapezio", "encolhimento para trapezio"],
+  "rosca-direta": ["rosca-direta-quinta"],
+  "triceps-testa": ["triceps-testa-quinta"],
+  agachamento: ["agachamento livre"],
+  "terra-romeno": ["terra-romeno-sexta"],
+  afundo: ["afundo-sexta"],
+  panturrilha: ["panturrilha-sexta"]
+};
+
+function normalizeExercise(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function sameExercise(log: ExerciseLog, exerciseId: string, name: string) {
-  return log.exerciseId === exerciseId || log.name.toLocaleLowerCase("pt-BR") === name.toLocaleLowerCase("pt-BR");
+  const candidates = new Set(
+    [exerciseId, name, ...(exerciseAliases[exerciseId] ?? [])].map(normalizeExercise)
+  );
+
+  return candidates.has(normalizeExercise(log.exerciseId)) || candidates.has(normalizeExercise(log.name));
 }
 
 export function getExerciseHistory(entries: DailyEntry[], exerciseId: string, name: string, beforeDate?: string): ExerciseHistory {

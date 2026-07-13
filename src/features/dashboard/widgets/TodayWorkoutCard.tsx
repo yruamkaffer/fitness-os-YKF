@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DailyEntry, ExerciseLog, WorkoutPlan } from "@/types/fitness";
+import { useSaveFeedback } from "@/hooks/useSaveFeedback";
 import { cn } from "@/utils/cn";
 import { formatExerciseHistory, getExerciseHistory } from "@/utils/training-history";
 
@@ -47,7 +48,7 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
   const [minutes, setMinutes] = useState(entry?.workoutMinutes?.toString() ?? "");
   const [notes, setNotes] = useState(entry?.notes ?? "");
   const [logs, setLogs] = useState<ExerciseLog[]>(() => initialLogs(workout, entry));
-  const [savedFlash, setSavedFlash] = useState(false);
+  const { isVisible: savedFlash, trigger: showSavedFeedback } = useSaveFeedback();
 
   useEffect(() => {
     setMinutes(entry?.workoutMinutes?.toString() ?? "");
@@ -77,12 +78,11 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
       exerciseLogs: logs.filter((log) => log.reps.trim() || log.load !== null),
       notes
     });
-    setSavedFlash(true);
-    window.setTimeout(() => setSavedFlash(false), 1100);
+    showSavedFeedback();
   }
 
   return (
-    <Card className={cn("border-primary/30 transition", (savedFlash || entry?.status === "workout" || entry?.status === "both") && "shadow-[0_0_0_1px_hsl(var(--primary)/0.45)]")}>
+    <Card className={cn("border-primary/30 transition", (savedFlash || entry?.status === "workout" || entry?.status === "both") && "shadow-[0_0_0_1px_hsl(var(--primary)/0.45),0_0_38px_hsl(var(--primary)/0.08)]", savedFlash && "motion-safe:animate-save-pop")}>
       <CardHeader>
         <div>
           <CardTitle className="flex items-center gap-2 text-xl">
@@ -92,7 +92,7 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
           <p className="mt-1 text-sm text-muted-foreground">{workout?.label ?? "Hoje"} · {workout?.focus ?? "Sem treino planejado"}</p>
         </div>
         {entry?.status === "workout" || entry?.status === "both" ? (
-          <Badge className="border-primary/40 text-primary motion-safe:animate-pulse">
+          <Badge className="border-primary/40 bg-primary/10 text-primary motion-safe:animate-soft-pulse">
             <CheckCircle2 className="mr-1 h-3 w-3" />
             registrado
           </Badge>
@@ -133,7 +133,7 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
                   const template = workout?.exercises.find((exercise) => exercise.id === log.exerciseId);
                   const history = getExerciseHistory(entries, log.exerciseId, log.name, date);
                   return (
-                    <tr key={log.exerciseId} className="border-t">
+                    <tr key={log.exerciseId} className="border-t transition-colors hover:bg-secondary/5">
                       <td className="px-3 py-3 font-medium">
                         {log.name}
                         <p className="text-xs font-normal text-muted-foreground">Planejado: {template?.sets ?? log.sets}x{template?.reps ?? "-"}</p>
@@ -164,7 +164,7 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
           onChange={(event) => setNotes(event.target.value)}
         />
 
-        <Button className={cn("w-full sm:w-auto", savedFlash && "motion-safe:animate-pulse")} onClick={saveWorkout} type="button">
+        <Button className={cn("w-full sm:w-auto", savedFlash && "motion-safe:animate-save-pop")} onClick={saveWorkout} type="button">
           {savedFlash || entry?.status === "workout" || entry?.status === "both" ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
           {savedFlash ? "Treino registrado" : "Salvar treino de hoje"}
         </Button>

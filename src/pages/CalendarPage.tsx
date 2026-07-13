@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Activity, CalendarDays, Dumbbell, Flame, Plus, Save, Timer, Trash2, Trophy, X } from "lucide-react";
+import { Activity, CalendarDays, CheckCircle2, Dumbbell, Flame, Plus, Save, Timer, Trash2, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageLoadingState } from "@/components/ui/loading-state";
 import { FitnessHeatmap } from "@/components/calendar/FitnessHeatmap";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
+import { useSaveFeedback } from "@/hooks/useSaveFeedback";
 import { useFitnessStore } from "@/stores/fitness-store";
 import type { DailyEntry, ExerciseLog } from "@/types/fitness";
 import { minutes, optionalKg } from "@/utils/format";
@@ -29,7 +31,7 @@ function logsFromEntryOrPlan(entry: DailyEntry | undefined, plan: ReturnType<typ
 }
 
 export function CalendarPage() {
-  const { data, today, saveEntry, removeEntry } = useFitnessOverview();
+  const { data, isLoading, today, saveEntry, removeEntry } = useFitnessOverview();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedDay = useFitnessStore((state) => state.selectedDay);
   const setSelectedDay = useFitnessStore((state) => state.setSelectedDay);
@@ -43,6 +45,7 @@ export function CalendarPage() {
   const [cardioMinutes, setCardioMinutes] = useState("");
   const [notes, setNotes] = useState("");
   const [logs, setLogs] = useState<ExerciseLog[]>([]);
+  const { isVisible: savedFlash, trigger: showSavedFeedback } = useSaveFeedback();
   const workoutEntries = data.entries.filter(isWorkoutDay);
   const cardioEntries = data.entries.filter(isCardioDay);
   const totalWorkoutMinutes = data.entries.reduce((sum, entry) => sum + (entry.workoutMinutes ?? 0), 0);
@@ -122,6 +125,7 @@ export function CalendarPage() {
       exerciseLogs,
       notes
     });
+    showSavedFeedback();
   }
 
   function deleteRecord() {
@@ -129,6 +133,8 @@ export function CalendarPage() {
     const confirmed = window.confirm(`Excluir o registro de ${new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR")}?`);
     if (confirmed) removeEntry(date);
   }
+
+  if (isLoading) return <PageLoadingState />;
 
   return (
     <div className="space-y-6">
@@ -274,9 +280,9 @@ export function CalendarPage() {
             <textarea className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="Observações" value={notes} onChange={(event) => setNotes(event.target.value)} />
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={saveRecord} type="button">
-                <Save className="h-4 w-4" />
-                Salvar registro
+              <Button className={savedFlash ? "motion-safe:animate-save-pop" : undefined} onClick={saveRecord} type="button">
+                {savedFlash ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                {savedFlash ? "Registro salvo" : "Salvar registro"}
               </Button>
               <Button variant="danger" onClick={deleteRecord} disabled={!existing} type="button">
                 <Trash2 className="h-4 w-4" />

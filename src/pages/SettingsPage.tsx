@@ -2,12 +2,15 @@ import { Link } from "react-router-dom";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageLoadingState } from "@/components/ui/loading-state";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { minutes, optionalKg } from "@/utils/format";
 
 export function SettingsPage() {
-  const { data, removeEntry } = useFitnessOverview();
+  const { data, isLoading, removeEntry } = useFitnessOverview();
   const entries = [...data.entries].sort((a, b) => b.date.localeCompare(a.date));
+
+  if (isLoading) return <PageLoadingState />;
 
   function deleteRecord(date: string) {
     const confirmed = window.confirm(`Excluir o registro de ${new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR")}?`);

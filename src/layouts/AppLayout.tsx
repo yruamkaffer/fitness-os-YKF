@@ -33,15 +33,14 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen text-foreground">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r bg-background/88 backdrop-blur-xl lg:block">
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-px bg-gradient-to-r from-transparent via-primary/80 to-secondary/80" />
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-white/10 bg-[#09090d]/95 backdrop-blur-xl lg:block">
         <div className="flex h-full flex-col">
           <div className="border-b p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Dumbbell className="h-5 w-5" />
-              </div>
+            <div className="group flex items-center gap-3">
+              <img className="h-11 w-11 rounded-lg border border-white/10 object-cover shadow-primary-glow transition duration-300 group-hover:scale-105 group-hover:border-primary/50" src="/fitness-os-logo.png" alt="Logo do Fitness OS" />
               <div>
-                <p className="text-lg font-black tracking-normal">FITNESS OS</p>
+                <p className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-lg font-black tracking-normal text-transparent">FITNESS OS</p>
                 <p className="text-xs text-muted-foreground">Treino e evolução</p>
               </div>
             </div>
@@ -54,8 +53,8 @@ export function AppLayout() {
                 end={item.href === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
-                    isActive && "bg-muted text-foreground"
+                    "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition duration-200 hover:translate-x-0.5 hover:bg-muted hover:text-foreground",
+                    isActive && "bg-primary/10 text-primary shadow-[inset_3px_0_0_hsl(var(--primary))]"
                   )
                 }
               >
@@ -74,12 +73,12 @@ export function AppLayout() {
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 border-b bg-background/80 px-4 py-3 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-20 border-b border-white/10 bg-background/80 px-4 py-3 backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-3">
             <Button aria-label="Menu" variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)} type="button">
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="hidden min-w-0 flex-1 items-center gap-3 rounded-md border bg-card px-3 py-2 text-sm text-muted-foreground md:flex">
+            <div className="hidden min-w-0 flex-1 items-center gap-3 rounded-md border bg-card/70 px-3 py-2 text-sm text-muted-foreground transition hover:border-secondary/35 md:flex">
               <Search className="h-4 w-4" />
               Buscar treino, peso ou cardio
             </div>
@@ -106,14 +105,12 @@ export function AppLayout() {
       </div>
 
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl lg:hidden">
+        <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Dumbbell className="h-5 w-5" />
-              </div>
+              <img className="h-10 w-10 rounded-lg border border-white/10 object-cover shadow-primary-glow" src="/fitness-os-logo.png" alt="Logo do Fitness OS" />
               <div>
-                <p className="font-black tracking-normal">FITNESS OS</p>
+                <p className="bg-gradient-to-r from-primary to-secondary bg-clip-text font-black tracking-normal text-transparent">FITNESS OS</p>
                 <p className="text-xs text-muted-foreground">Treino e evolução</p>
               </div>
             </div>
@@ -131,7 +128,7 @@ export function AppLayout() {
                 className={({ isActive }) =>
                   cn(
                     "flex h-12 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
-                    isActive && "bg-muted text-foreground"
+                    isActive && "bg-primary/10 text-primary shadow-[inset_3px_0_0_hsl(var(--primary))]"
                   )
                 }
               >
@@ -146,10 +143,10 @@ export function AppLayout() {
               {trainedToday ? "Treino salvo" : "Treinei hoje"}
             </Button>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-2 py-2 backdrop-blur-xl lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-background/95 px-2 py-2 backdrop-blur-xl lg:hidden">
         <div className="grid grid-cols-5 gap-1">
           {navigation.slice(0, 5).map((item) => (
             <NavLink
@@ -158,8 +155,8 @@ export function AppLayout() {
               end={item.href === "/"}
               className={({ isActive }) =>
                 cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-md text-[11px] font-medium text-muted-foreground",
-                  isActive && "bg-muted text-foreground"
+                  "flex min-h-14 flex-col items-center justify-center gap-1 rounded-md text-[11px] font-medium text-muted-foreground transition active:scale-95",
+                  isActive && "bg-primary/10 text-primary shadow-[inset_0_2px_0_hsl(var(--primary))]"
                 )
               }
             >

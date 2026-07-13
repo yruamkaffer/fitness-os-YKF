@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { Activity, CalendarDays, CheckCircle2, Dumbbell, Flame, Save, Scale } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageLoadingState } from "@/components/ui/loading-state";
 import { FitnessHeatmap } from "@/components/calendar/FitnessHeatmap";
 import { WeightTrendChart } from "@/components/charts/WeightTrendChart";
 import { VolumeChart } from "@/components/charts/VolumeChart";
 import { MetricCard } from "@/features/dashboard/widgets/MetricCard";
 import { TodayWorkoutCard } from "@/features/dashboard/widgets/TodayWorkoutCard";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
+import { useSaveFeedback } from "@/hooks/useSaveFeedback";
 import { useFitnessStore } from "@/stores/fitness-store";
 import { minutes, optionalKg } from "@/utils/format";
 import { computeBestStreak, computeCurrentStreak, isCardioDay, isWorkoutDay } from "@/utils/stats";
@@ -34,7 +37,7 @@ export function DashboardPage() {
   }, [defaultWeekday]);
 
   if (isLoading) {
-    return <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">Carregando seus registros...</div>;
+    return <PageLoadingState cards={5} />;
   }
 
   return (
@@ -201,15 +204,14 @@ function CardioQuickForm({
 }) {
   const [date, setDate] = useState(defaultDate);
   const [minutesValue, setMinutesValue] = useState("");
-  const [savedFlash, setSavedFlash] = useState(false);
+  const { isVisible: savedFlash, trigger: showSavedFeedback } = useSaveFeedback();
 
   function save() {
     const parsed = Number(minutesValue);
     if (!Number.isFinite(parsed) || parsed <= 0) return;
     onSave(date, parsed);
     setMinutesValue("");
-    setSavedFlash(true);
-    window.setTimeout(() => setSavedFlash(false), 1100);
+    showSavedFeedback();
   }
 
   return (
@@ -222,8 +224,9 @@ function CardioQuickForm({
         value={minutesValue}
         onChange={(event) => setMinutesValue(event.target.value)}
       />
-      <button
-        className={`h-11 rounded-md bg-secondary px-4 text-sm font-semibold text-secondary-foreground transition ${savedFlash ? "motion-safe:animate-pulse brightness-110" : ""}`}
+      <Button
+        variant="secondary"
+        className={savedFlash ? "h-11 motion-safe:animate-save-pop" : "h-11"}
         type="button"
         onClick={save}
       >
@@ -231,7 +234,7 @@ function CardioQuickForm({
           {savedFlash ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
           {savedFlash ? "Cardio somado" : "Salvar cardio"}
         </span>
-      </button>
+      </Button>
     </div>
   );
 }
@@ -239,10 +242,14 @@ function CardioQuickForm({
 function WeightQuickForm({ defaultDate, onSave }: { defaultDate: string; onSave: (date: string, weight: number) => void }) {
   const [date, setDate] = useState(defaultDate);
   const [weightValue, setWeightValue] = useState("");
+  const { isVisible: savedFlash, trigger: showSavedFeedback } = useSaveFeedback();
 
   function save() {
     const parsed = Number(weightValue.replace(",", "."));
-    if (Number.isFinite(parsed) && parsed > 0) onSave(date, parsed);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    onSave(date, parsed);
+    setWeightValue("");
+    showSavedFeedback();
   }
 
   return (
@@ -255,12 +262,10 @@ function WeightQuickForm({ defaultDate, onSave }: { defaultDate: string; onSave:
         value={weightValue}
         onChange={(event) => setWeightValue(event.target.value)}
       />
-      <button className="h-11 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground" type="button" onClick={save}>
-        <span className="inline-flex items-center gap-2">
-          <Save className="h-4 w-4" />
-          Salvar peso
-        </span>
-      </button>
+      <Button className={savedFlash ? "h-11 motion-safe:animate-save-pop" : "h-11"} type="button" onClick={save}>
+        {savedFlash ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+        {savedFlash ? "Peso registrado" : "Salvar peso"}
+      </Button>
     </div>
   );
 }

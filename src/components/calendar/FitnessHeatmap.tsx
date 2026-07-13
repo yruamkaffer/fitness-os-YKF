@@ -54,7 +54,7 @@ export function FitnessHeatmap({ entries, onSelect }: FitnessHeatmapProps) {
               aria-label={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${labels[entry.status]}`}
               title={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${labels[entry.status]}`}
               onClick={() => onSelect(entry)}
-              className={cn("aspect-square w-full rounded-[3px] ring-1 ring-white/5 transition hover:scale-125", theme.heatmap[entry.status])}
+              className={cn("aspect-square w-full rounded-[3px] ring-1 ring-white/5 transition duration-200 hover:z-10 hover:scale-125 hover:ring-secondary/70 focus-visible:z-10 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary", theme.heatmap[entry.status])}
             />
           ))}
         </div>

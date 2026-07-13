@@ -1,15 +1,15 @@
 export const theme = {
   chart: {
-    primary: "#e9ff70",
-    teal: "#5eead4",
-    coral: "#fb8b6b",
-    muted: "#64748b"
+    primary: "#ff3d9f",
+    teal: "#7ddcff",
+    coral: "#9d6cff",
+    muted: "#71717a"
   },
   heatmap: {
-    none: "bg-slate-800/80",
-    workout: "bg-lime-300",
-    cardio: "bg-teal-300",
-    both: "bg-orange-300",
-    rest: "bg-slate-500"
+    none: "bg-zinc-800/90",
+    workout: "bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.35)]",
+    cardio: "bg-secondary shadow-[0_0_10px_hsl(var(--secondary)/0.3)]",
+    both: "bg-accent shadow-[0_0_10px_hsl(var(--accent)/0.35)]",
+    rest: "bg-zinc-500"
   }
 } as const;

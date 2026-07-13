@@ -1,13 +1,14 @@
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { Scale, TrendingDown, type LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageLoadingState } from "@/components/ui/loading-state";
 import { WeightTrendChart } from "@/components/charts/WeightTrendChart";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { kg, optionalKg } from "@/utils/format";
 
 export function WeightPage() {
-  const { data } = useFitnessOverview();
-  if (!data) return null;
+  const { data, isLoading } = useFitnessOverview();
+  if (isLoading) return <PageLoadingState />;
 
   const weightEntries = data.entries.filter((entry) => entry.weight !== null);
   const first = weightEntries[0];

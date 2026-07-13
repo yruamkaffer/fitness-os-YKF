@@ -3,15 +3,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
 const buttonVariants = cva(
-  "inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-md px-4 text-sm font-semibold transition-[transform,box-shadow,background-color,border-color,color,filter] duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:brightness-95",
-        secondary: "bg-secondary text-secondary-foreground hover:brightness-110",
-        ghost: "hover:bg-muted",
-        outline: "border bg-transparent hover:bg-muted",
-        danger: "bg-rose-500 text-white hover:bg-rose-400"
+        default: "bg-primary text-primary-foreground shadow-primary-glow hover:brightness-110",
+        secondary: "bg-secondary text-secondary-foreground shadow-secondary-glow hover:brightness-105",
+        ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
+        outline: "border bg-card/40 hover:border-secondary/50 hover:bg-secondary/10 hover:text-secondary",
+        danger: "bg-rose-500 text-white shadow-[0_8px_24px_rgba(244,63,94,0.18)] hover:bg-rose-400"
       },
       size: {
         default: "h-10 px-4",

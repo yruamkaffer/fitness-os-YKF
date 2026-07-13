@@ -3,6 +3,7 @@ import { Bell, Maximize2, Pause, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs } from "@/components/ui/tabs";
+import { cn } from "@/utils/cn";
 
 type Mode = "rest" | "free" | "pomodoro" | "rounds";
 
@@ -97,9 +98,10 @@ export function TimerPage() {
         <h1 className="text-3xl font-black tracking-normal">Timer de treino</h1>
       </div>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-col xl:flex-row">
           <CardTitle>Descanso, livre, Pomodoro e rounds</CardTitle>
           <Tabs
+            className="w-full xl:w-auto"
             value={mode}
             onChange={switchMode}
             items={[
@@ -111,8 +113,16 @@ export function TimerPage() {
           />
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex aspect-[16/7] min-h-64 flex-col items-center justify-center rounded-lg border bg-muted/20">
-            <span className="text-6xl font-black tracking-normal sm:text-8xl">{mode === "rounds" ? roundLabel : label}</span>
+          <div className={cn("flex min-h-64 flex-col items-center justify-center rounded-lg border border-secondary/20 bg-black/35 transition-shadow duration-500 sm:aspect-[16/7]", running && "shadow-[inset_0_0_55px_hsl(var(--secondary)/0.06),0_0_35px_hsl(var(--primary)/0.08)]")}>
+            <span
+              className={cn(
+                "bg-gradient-to-r from-secondary via-foreground to-primary bg-clip-text font-black tracking-normal text-transparent",
+                mode === "rounds" ? "text-4xl sm:text-6xl lg:text-8xl" : "text-6xl sm:text-8xl",
+                running && "motion-safe:animate-soft-pulse"
+              )}
+            >
+              {mode === "rounds" ? roundLabel : label}
+            </span>
             {mode === "rounds" && <span className="mt-3 text-sm font-semibold text-muted-foreground">Round {currentRound}</span>}
           </div>
 

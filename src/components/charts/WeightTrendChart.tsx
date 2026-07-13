@@ -36,7 +36,7 @@ export function WeightTrendChart({ entries }: WeightTrendChartProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.18)" />
           <XAxis dataKey="date" stroke="#94a3b8" tick={{ fontSize: 12 }} tickLine={false} />
           <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} tickLine={false} domain={["dataMin - 1", "dataMax + 1"]} />
-          <Tooltip contentStyle={{ background: "#091316", border: "1px solid #233338", borderRadius: 8 }} />
+          <Tooltip contentStyle={{ background: "#111116", border: "1px solid #343440", borderRadius: 8 }} />
           <Area type="monotone" dataKey="peso" stroke={theme.chart.teal} fill="url(#weight)" strokeWidth={2} />
         </AreaChart>
       </ResponsiveContainer>

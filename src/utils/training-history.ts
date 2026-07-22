@@ -15,8 +15,11 @@ const exerciseAliases: Record<string, string[]> = {
   "triceps-testa": ["triceps-testa-quinta"],
   agachamento: ["agachamento livre"],
   "terra-romeno": ["terra-romeno-sexta"],
-  afundo: ["afundo-sexta"],
-  panturrilha: ["panturrilha-sexta"]
+  afundo: ["afundo-sexta", "afundo com halteres"],
+  panturrilha: ["panturrilha-sexta", "panturrilha em pe"],
+  "hip-thrust": ["hip thrust com barra"],
+  stiff: ["stiff com barra", "stiff com halteres", "stiff com barra ou halteres"],
+  "abdominal-reverso": ["abdominal-infra", "abdominal infra"]
 };
 
 function normalizeExercise(value: string) {

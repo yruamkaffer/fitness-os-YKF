@@ -65,6 +65,15 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
       }, 0),
     [logs]
   );
+  const exerciseRows = useMemo(
+    () =>
+      logs.map((log) => ({
+        log,
+        template: workout?.exercises.find((exercise) => exercise.id === log.exerciseId),
+        history: getExerciseHistory(entries, log.exerciseId, log.name, date)
+      })),
+    [date, entries, logs, workout]
+  );
 
   function updateLog(exerciseId: string, patch: Partial<ExerciseLog>) {
     setLogs((current) => current.map((log) => (log.exerciseId === exerciseId ? { ...log, ...patch } : log)));
@@ -117,8 +126,36 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
             Hoje não tem exercícios de musculação planejados. Use o campo de observações ou registre cardio no painel abaixo.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-md border">
-            <table className="w-full min-w-[720px] text-sm">
+          <>
+            <div className="space-y-3 md:hidden">
+              {exerciseRows.map(({ log, template, history }) => (
+                <div key={log.exerciseId} className="rounded-md border bg-muted/20 p-3">
+                  <div className="min-w-0">
+                    <p className="break-words font-semibold">{log.name}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Planejado: {template?.sets ?? log.sets}x{template?.reps ?? "-"}</p>
+                    <p className="mt-1 text-xs font-semibold text-primary">{formatExerciseHistory(history)}</p>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <label className="space-y-1 text-xs text-muted-foreground">
+                      <span>Séries</span>
+                      <input className="h-10 w-full min-w-0 rounded-md border bg-background px-2 text-sm" inputMode="numeric" value={log.sets} onChange={(event) => updateLog(log.exerciseId, { sets: Number(event.target.value) || 0 })} />
+                    </label>
+                    <label className="space-y-1 text-xs text-muted-foreground">
+                      <span>Reps</span>
+                      <input className="h-10 w-full min-w-0 rounded-md border bg-background px-2 text-sm" placeholder="8" inputMode="decimal" value={log.reps} onChange={(event) => updateLog(log.exerciseId, { reps: event.target.value })} />
+                    </label>
+                    <label className="space-y-1 text-xs text-muted-foreground">
+                      <span>Kg</span>
+                      <input className="h-10 w-full min-w-0 rounded-md border bg-background px-2 text-sm" placeholder="40" inputMode="decimal" value={log.load ?? ""} onChange={(event) => updateLog(log.exerciseId, { load: toNumber(event.target.value) })} />
+                    </label>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">Descanso: {template?.restSeconds ?? 90}s</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden rounded-md border md:block">
+              <table className="w-full text-sm">
               <thead className="bg-muted/30 text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="px-3 py-3">Exercício</th>
@@ -129,32 +166,29 @@ export function TodayWorkoutCard({ date, workout, entry, entries, onSave }: Toda
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log) => {
-                  const template = workout?.exercises.find((exercise) => exercise.id === log.exerciseId);
-                  const history = getExerciseHistory(entries, log.exerciseId, log.name, date);
-                  return (
-                    <tr key={log.exerciseId} className="border-t transition-colors hover:bg-secondary/5">
-                      <td className="px-3 py-3 font-medium">
-                        {log.name}
-                        <p className="text-xs font-normal text-muted-foreground">Planejado: {template?.sets ?? log.sets}x{template?.reps ?? "-"}</p>
-                        <p className="text-xs font-normal text-primary">{formatExerciseHistory(history)}</p>
-                      </td>
-                      <td className="px-3 py-3">
-                        <input className="h-9 w-20 rounded-md border bg-background px-2" inputMode="numeric" value={log.sets} onChange={(event) => updateLog(log.exerciseId, { sets: Number(event.target.value) || 0 })} />
-                      </td>
-                      <td className="px-3 py-3">
-                        <input className="h-9 w-28 rounded-md border bg-background px-2" placeholder="ex: 8" inputMode="decimal" value={log.reps} onChange={(event) => updateLog(log.exerciseId, { reps: event.target.value })} />
-                      </td>
-                      <td className="px-3 py-3">
-                        <input className="h-9 w-28 rounded-md border bg-background px-2" placeholder="ex: 40" inputMode="decimal" value={log.load ?? ""} onChange={(event) => updateLog(log.exerciseId, { load: toNumber(event.target.value) })} />
-                      </td>
-                      <td className="px-3 py-3 text-muted-foreground">{template?.restSeconds ?? 90}s</td>
-                    </tr>
-                  );
-                })}
+                {exerciseRows.map(({ log, template, history }) => (
+                  <tr key={log.exerciseId} className="border-t transition-colors hover:bg-secondary/5">
+                    <td className="px-3 py-3 font-medium">
+                      {log.name}
+                      <p className="text-xs font-normal text-muted-foreground">Planejado: {template?.sets ?? log.sets}x{template?.reps ?? "-"}</p>
+                      <p className="text-xs font-normal text-primary">{formatExerciseHistory(history)}</p>
+                    </td>
+                    <td className="px-3 py-3">
+                      <input className="h-9 w-20 rounded-md border bg-background px-2" inputMode="numeric" value={log.sets} onChange={(event) => updateLog(log.exerciseId, { sets: Number(event.target.value) || 0 })} />
+                    </td>
+                    <td className="px-3 py-3">
+                      <input className="h-9 w-28 rounded-md border bg-background px-2" placeholder="ex: 8" inputMode="decimal" value={log.reps} onChange={(event) => updateLog(log.exerciseId, { reps: event.target.value })} />
+                    </td>
+                    <td className="px-3 py-3">
+                      <input className="h-9 w-28 rounded-md border bg-background px-2" placeholder="ex: 40" inputMode="decimal" value={log.load ?? ""} onChange={(event) => updateLog(log.exerciseId, { load: toNumber(event.target.value) })} />
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground">{template?.restSeconds ?? 90}s</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
 
         <textarea

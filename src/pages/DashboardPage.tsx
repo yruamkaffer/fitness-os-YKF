@@ -154,8 +154,8 @@ export function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Volume e cardio</CardTitle>
-            <p className="text-sm text-muted-foreground">Só usa treinos e cardios salvos.</p>
+            <CardTitle>Carga e cardio da semana</CardTitle>
+            <p className="text-sm text-muted-foreground">Mostra carga e cardio separados para ficar fácil comparar.</p>
           </CardHeader>
           <CardContent>
             <VolumeChart entries={data.entries} />

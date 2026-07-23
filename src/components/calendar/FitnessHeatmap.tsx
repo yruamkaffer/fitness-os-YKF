@@ -8,13 +8,17 @@ interface FitnessHeatmapProps {
   onSelect: (entry: DailyEntry) => void;
 }
 
-const labels: Record<DailyEntry["status"], string> = {
+const labels = {
   none: "Sem registro",
   workout: "Treino",
   cardio: "Cardio",
-  both: "Treino + Cardio",
-  rest: "Descanso"
-};
+  both: "Treino + Cardio"
+} satisfies Partial<Record<DailyEntry["status"], string>>;
+
+function statusLabel(status: DailyEntry["status"]) {
+  if (status in labels) return labels[status as keyof typeof labels];
+  return "Sem atividade";
+}
 
 function emptyEntry(date: string): DailyEntry {
   return {
@@ -32,7 +36,7 @@ function emptyEntry(date: string): DailyEntry {
 export function FitnessHeatmap({ entries, onSelect }: FitnessHeatmapProps) {
   const byDate = new Map(entries.map((entry) => [entry.date, entry]));
   const days = eachDayOfInterval({
-    start: subDays(new Date(), 29),
+    start: subDays(new Date(), 89),
     end: new Date()
   }).map((day) => {
     const date = format(day, "yyyy-MM-dd");
@@ -42,17 +46,17 @@ export function FitnessHeatmap({ entries, onSelect }: FitnessHeatmapProps) {
   return (
     <div className="min-w-0 space-y-4">
       <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-        <span>Últimos 30 dias</span>
-        <span>{days.filter((entry) => entry.status !== "none").length}/30 ativos</span>
+        <span>Trilha dos últimos 90 dias</span>
+        <span>{days.filter((entry) => entry.status !== "none" && entry.status !== "rest").length}/90 ativos</span>
       </div>
       <div className="max-w-full overflow-hidden pb-1">
-        <div className="grid grid-cols-10 gap-1 sm:grid-cols-[repeat(15,0.875rem)] lg:grid-cols-[repeat(30,0.875rem)]">
+        <div className="grid grid-cols-[repeat(15,minmax(0,0.75rem))] gap-1 sm:grid-cols-[repeat(18,0.875rem)] lg:grid-cols-[repeat(30,0.875rem)]">
           {days.map((entry) => (
             <button
               key={entry.date}
               type="button"
-              aria-label={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${labels[entry.status]}`}
-              title={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${labels[entry.status]}`}
+              aria-label={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${statusLabel(entry.status)}`}
+              title={`${format(parseISO(entry.date), "dd/MM/yyyy")} - ${statusLabel(entry.status)}`}
               onClick={() => onSelect(entry)}
               className={cn("aspect-square w-full rounded-[3px] ring-1 ring-white/5 transition duration-200 hover:z-10 hover:scale-125 hover:ring-secondary/70 focus-visible:z-10 focus-visible:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary", theme.heatmap[entry.status])}
             />

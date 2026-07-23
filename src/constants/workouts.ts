@@ -78,23 +78,5 @@ export const weeklyWorkoutPlan: WorkoutPlan[] = [
       exercise("crucifixo-inverso", "Crucifixo inverso com halteres ou elástico", 3, "12-20", 60),
       exercise("abdominal-reverso", "Abdominal reverso", 3, "12-15", 45)
     ]
-  },
-  {
-    weekday: 6,
-    label: "Sábado",
-    focus: "Cardio + Alongamento + Mobilidade",
-    groups: ["Cardio"],
-    exercises: [
-      exercise("cardio-sabado", "Cardio", 1, "20-40min", 60),
-      exercise("alongamento", "Alongamento", 1, "10-15min", 30),
-      exercise("mobilidade", "Mobilidade", 1, "10-15min", 30)
-    ]
-  },
-  {
-    weekday: 0,
-    label: "Domingo",
-    focus: "Descanso ou cardio leve",
-    groups: ["Cardio"],
-    exercises: [exercise("cardio-leve-domingo", "Cardio leve se estiver disposto", 1, "20-30min", 60)]
   }
 ];

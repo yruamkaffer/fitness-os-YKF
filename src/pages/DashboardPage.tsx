@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, CalendarDays, CheckCircle2, Dumbbell, Flame, Save, Scale } from "lucide-react";
+import { Activity, CalendarDays, CheckCircle2, Dumbbell, Flame, Medal, Save, Scale, Sparkles, TrendingDown } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { WeightTrendChart } from "@/components/charts/WeightTrendChart";
 import { VolumeChart } from "@/components/charts/VolumeChart";
 import { MetricCard } from "@/features/dashboard/widgets/MetricCard";
 import { TodayWorkoutCard } from "@/features/dashboard/widgets/TodayWorkoutCard";
+import { bodyProgress } from "@/constants/body-assessments";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { useSaveFeedback } from "@/hooks/useSaveFeedback";
 import { useFitnessStore } from "@/stores/fitness-store";
@@ -21,7 +22,8 @@ export function DashboardPage() {
   const setSelectedDay = useFitnessStore((state) => state.setSelectedDay);
   const todayEntry = data.entries.find((entry) => entry.date === today);
   const defaultWeekday = new Date(`${today}T12:00:00`).getDay();
-  const [selectedWorkoutWeekday, setSelectedWorkoutWeekday] = useState(defaultWeekday);
+  const defaultWorkoutWeekday = data.workoutPlan.some((plan) => plan.weekday === defaultWeekday) ? defaultWeekday : data.workoutPlan[0]?.weekday ?? defaultWeekday;
+  const [selectedWorkoutWeekday, setSelectedWorkoutWeekday] = useState(defaultWorkoutWeekday);
   const todayWorkout = data.workoutPlan.find((plan) => plan.weekday === selectedWorkoutWeekday);
   const trainedDays = data.entries.filter(isWorkoutDay).length;
   const cardioDays = data.entries.filter(isCardioDay).length;
@@ -31,10 +33,11 @@ export function DashboardPage() {
   const trainingWeek = week.reduce((sum, entry) => sum + (entry.workoutMinutes ?? 0), 0);
   const cardioWeek = week.reduce((sum, entry) => sum + (entry.cardioMinutes ?? 0), 0);
   const totalLoadWeek = week.reduce((sum, entry) => sum + entry.totalLoad, 0);
+  const assessment = bodyProgress();
 
   useEffect(() => {
-    setSelectedWorkoutWeekday(defaultWeekday);
-  }, [defaultWeekday]);
+    setSelectedWorkoutWeekday(defaultWorkoutWeekday);
+  }, [defaultWorkoutWeekday]);
 
   if (isLoading) {
     return <PageLoadingState cards={5} />;
@@ -124,11 +127,13 @@ export function DashboardPage() {
         <MetricCard icon={Flame} label="Volume semanal" value={`${Math.round(totalLoadWeek).toLocaleString("pt-BR")}kg`} detail={`${minutes(trainingWeek)} treinando`} />
       </div>
 
+      <BodyQuestCard assessment={assessment} />
+
       <div className="grid min-w-0 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="min-w-0">
           <CardHeader>
-            <CardTitle>Calendário estilo GitHub</CardTitle>
-            <p className="text-sm text-muted-foreground">Últimos 30 dias. Dias salvos ganham cor.</p>
+            <CardTitle>Mapa de consistência</CardTitle>
+            <p className="text-sm text-muted-foreground">Últimos 90 dias. Cada quadrado acende quando você salva treino ou cardio.</p>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />
@@ -192,6 +197,43 @@ export function DashboardPage() {
         )}
       </Dialog>
     </div>
+  );
+}
+
+function formatDelta(value: number, suffix = "") {
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}${suffix}`;
+}
+
+function BodyQuestCard({ assessment }: { assessment: ReturnType<typeof bodyProgress> }) {
+  const achievements = [
+    { label: "IMC adequado", detail: assessment.latest.bmiLabel, icon: Medal },
+    { label: "Gordura em queda", detail: `${formatDelta(assessment.totalBodyFatDelta, "%")} desde maio`, icon: TrendingDown },
+    { label: "Dobras reduzidas", detail: `${formatDelta(assessment.totalSkinfoldDelta, "mm")} no total`, icon: Sparkles }
+  ];
+
+  return (
+    <Card className="overflow-hidden border-primary/40 bg-[linear-gradient(135deg,hsl(var(--card)),hsl(var(--muted)/0.18))]">
+      <CardContent className="grid gap-4 p-4 lg:grid-cols-[1fr_1.1fr]">
+        <div>
+          <p className="text-sm font-semibold text-primary">Avaliação corporal</p>
+          <h2 className="mt-1 text-2xl font-black tracking-normal">Level up físico</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Última avaliação em {new Date(`${assessment.latest.date}T12:00:00`).toLocaleDateString("pt-BR")}: {assessment.latest.weight.toLocaleString("pt-BR")}kg,{" "}
+            {assessment.latest.bodyFatPercent.toLocaleString("pt-BR")}% de gordura e risco metabólico {assessment.latest.metabolicRisk.toLowerCase()}.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {achievements.map(({ label, detail, icon: Icon }) => (
+            <div key={label} className="rounded-md border bg-background/60 p-3 transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_0_24px_hsl(var(--primary)/0.12)]">
+              <Icon className="h-5 w-5 text-secondary" />
+              <p className="mt-3 text-sm font-bold">{label}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

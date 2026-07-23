@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Activity, CalendarDays, CheckCircle2, Dumbbell, Flame, Plus, Save, Timer, Trash2, Trophy, X } from "lucide-react";
+import { Activity, CalendarDays, CheckCircle2, Dumbbell, Flame, Medal, Plus, Save, Sparkles, Timer, Trash2, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageLoadingState } from "@/components/ui/loading-state";
 import { FitnessHeatmap } from "@/components/calendar/FitnessHeatmap";
+import { bodyProgress } from "@/constants/body-assessments";
 import { useFitnessOverview } from "@/hooks/useFitnessOverview";
 import { useSaveFeedback } from "@/hooks/useSaveFeedback";
 import { useFitnessStore } from "@/stores/fitness-store";
@@ -38,7 +39,8 @@ export function CalendarPage() {
   const [date, setDate] = useState(searchParams.get("date") ?? today);
   const existing = data.entries.find((entry) => entry.date === date);
   const defaultPlanWeekday = new Date(`${date}T12:00:00`).getDay();
-  const [planWeekday, setPlanWeekday] = useState(defaultPlanWeekday);
+  const fallbackPlanWeekday = data.workoutPlan.some((item) => item.weekday === defaultPlanWeekday) ? defaultPlanWeekday : data.workoutPlan[0]?.weekday ?? defaultPlanWeekday;
+  const [planWeekday, setPlanWeekday] = useState(fallbackPlanWeekday);
   const plan = data.workoutPlan.find((item) => item.weekday === planWeekday);
   const [weight, setWeight] = useState("");
   const [workoutMinutes, setWorkoutMinutes] = useState("");
@@ -53,6 +55,7 @@ export function CalendarPage() {
   const totalLoadSaved = data.entries.reduce((sum, entry) => sum + entry.totalLoad, 0);
   const totalExerciseLogs = data.entries.reduce((sum, entry) => sum + entry.exerciseLogs.length, 0);
   const bestVolumeDay = data.entries.reduce<DailyEntry | undefined>((best, entry) => (!best || entry.totalLoad > best.totalLoad ? entry : best), undefined);
+  const assessment = bodyProgress();
 
   useEffect(() => {
     if (selectedDay) setDate(selectedDay.date);
@@ -64,8 +67,8 @@ export function CalendarPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    setPlanWeekday(defaultPlanWeekday);
-  }, [defaultPlanWeekday]);
+    setPlanWeekday(fallbackPlanWeekday);
+  }, [fallbackPlanWeekday]);
 
   useEffect(() => {
     setWeight(existing?.weight?.toString() ?? "");
@@ -189,11 +192,29 @@ export function CalendarPage() {
           </CardContent>
         </Card>
       </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {[
+          { label: "Gordura corporal", value: `${assessment.latest.bodyFatPercent.toLocaleString("pt-BR")}%`, detail: `${assessment.totalBodyFatDelta.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% desde maio`, icon: Sparkles },
+          { label: "Cintura", value: `${assessment.latest.waist.toLocaleString("pt-BR")}cm`, detail: `${assessment.totalWaistDelta.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}cm no total`, icon: Medal },
+          { label: "Dobras", value: `${assessment.latest.skinfoldSum}mm`, detail: `${assessment.totalSkinfoldDelta}mm no total`, icon: Trophy }
+        ].map(({ label, value, detail, icon: Icon }) => (
+          <Card key={label} className="min-w-0 border-secondary/30">
+            <CardContent className="flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="mt-1 break-words text-xl font-black tracking-normal">{value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+              </div>
+              <Icon className="h-5 w-5 shrink-0 text-secondary" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
       <div className="grid gap-4 2xl:grid-cols-[0.95fr_1.05fr]">
         <Card className="min-w-0">
           <CardHeader>
-            <CardTitle>Calendário estilo GitHub</CardTitle>
-            <p className="text-sm text-muted-foreground">Últimos 30 dias. Os quadrados ganham cor quando você salva treino, cardio ou descanso.</p>
+            <CardTitle>Mapa de consistência</CardTitle>
+            <p className="text-sm text-muted-foreground">Últimos 90 dias. Dias sem treino viram descanso automaticamente.</p>
           </CardHeader>
           <CardContent className="min-w-0 overflow-hidden">
             <FitnessHeatmap entries={data.entries} onSelect={setSelectedDay} />

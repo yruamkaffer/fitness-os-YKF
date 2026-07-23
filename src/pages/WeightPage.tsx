@@ -1,4 +1,4 @@
-import { differenceInCalendarDays, parseISO } from "date-fns";
+import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { Goal, Scale, TrendingDown, type LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageLoadingState } from "@/components/ui/loading-state";
@@ -21,6 +21,13 @@ export function WeightPage() {
   const days = first && last ? Math.max(1, differenceInCalendarDays(parseISO(last.date), parseISO(first.date))) : 0;
   const weeklyLoss = totalLoss !== null && days > 0 ? totalLoss / (days / 7) : null;
   const currentWeight = last?.weight ?? data.profile.currentWeight;
+  const kilosTo78 = currentWeight !== null && currentWeight > TARGET_MIN_WEIGHT ? currentWeight - TARGET_MIN_WEIGHT : 0;
+  const projected78Date =
+    last && weeklyLoss !== null && weeklyLoss > 0 && kilosTo78 > 0
+      ? addDays(parseISO(last.date), Math.round((kilosTo78 / weeklyLoss) * 7)).toLocaleDateString("pt-BR")
+      : currentWeight !== null && currentWeight <= TARGET_MIN_WEIGHT
+        ? "Já chegou"
+        : "--";
   const daysUntilTarget = last ? Math.max(1, differenceInCalendarDays(parseISO(TARGET_DATE), parseISO(last.date))) : 0;
   const weeksUntilTarget = daysUntilTarget / 7;
   const kilosToTarget = currentWeight !== null && currentWeight > TARGET_MAX_WEIGHT ? currentWeight - TARGET_MAX_WEIGHT : 0;
@@ -43,7 +50,7 @@ export function WeightPage() {
     { label: "Atual", value: optionalKg(data.profile.currentWeight), icon: Scale },
     { label: "Perda total", value: totalLoss !== null ? kg(Math.max(0, totalLoss)) : "--", icon: TrendingDown },
     { label: "Média semanal", value: weeklyLoss !== null ? kg(Math.max(0, weeklyLoss)) : "--", icon: TrendingDown },
-    { label: "Meta dezembro", value: "78-80kg", icon: Goal }
+    { label: "78kg no ritmo atual", value: projected78Date, icon: Goal }
   ];
 
   return (
@@ -71,6 +78,9 @@ export function WeightPage() {
             <p className="text-sm font-semibold text-primary">Projeção corrigida</p>
             <h2 className="mt-1 text-2xl font-black tracking-normal">{targetStatus}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{targetDetail}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Mantendo a média registrada até agora, a estimativa para bater 78kg é <span className="font-semibold text-foreground">{projected78Date}</span>.
+            </p>
           </div>
           <div className="rounded-md border bg-muted/20 p-3 text-sm text-muted-foreground">
             Dezembro: <span className="font-semibold text-foreground">78-80kg</span>
